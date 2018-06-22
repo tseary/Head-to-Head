@@ -20,7 +20,7 @@ public class BlasteroidsGamePanel extends HeadToHeadGamePanel {
 	private static final long serialVersionUID = 1L;
 	
 	// Physics constants
-	private static final int gameTimerFPS = 24;
+	private static final int gameTimerFPS = 60;
 	private static final double spaceshipMaxSpeed = 200d;
 	private static final double spaceshipThrust = 150d;
 	private static final double spaceshipDrag = 0.3d;
@@ -29,6 +29,11 @@ public class BlasteroidsGamePanel extends HeadToHeadGamePanel {
 	private static final double bulletMaxAge = 2.333d;
 	protected double deltaTimeAlive;
 	protected double deltaTimeDead;
+	
+	@Override
+	public long getPhysicsTickMillis() {
+		return 1000 / gameTimerFPS;
+	}
 	
 	// Physics objects
 	protected Spaceship[] spaceships;
@@ -122,9 +127,9 @@ public class BlasteroidsGamePanel extends HeadToHeadGamePanel {
 		}
 		
 		// Start the game timer
-		deltaTimeAlive = gameTimer.getDelay() / 1000d;
+		deltaTimeAlive = getPhysicsTickMillis() / 1000d;
 		deltaTimeDead = deltaTimeAlive / 4d;
-		gameTimer.start();
+		startGameLoop();
 	}
 	
 	@Override
@@ -193,6 +198,7 @@ public class BlasteroidsGamePanel extends HeadToHeadGamePanel {
 	
 	/**
 	 * Returns true if any button's press counter is greater than zero.
+	 * 
 	 * @return
 	 */
 	@SuppressWarnings("unused")
@@ -206,15 +212,15 @@ public class BlasteroidsGamePanel extends HeadToHeadGamePanel {
 	}
 	
 	@Override
-	protected void gameTick() {
+	protected void physicsTick() {
 		try {
 			roundStartCounter++;
 			
 			// Do the game tick
 			if (!isRoundOver()) {
-				gameTickAlive();
+				physicsTickAlive();
 			} else {
-				gameTickDead();
+				physicsTickDead();
 			}
 			
 			// Play all the sounds that were requested during this tick
@@ -233,7 +239,7 @@ public class BlasteroidsGamePanel extends HeadToHeadGamePanel {
 	/**
 	 * The normal game tick.
 	 */
-	private void gameTickAlive() {
+	private void physicsTickAlive() {
 		// Physics stuff
 		setThrusts();
 		moveEverything(deltaTimeAlive);
@@ -252,7 +258,7 @@ public class BlasteroidsGamePanel extends HeadToHeadGamePanel {
 	/**
 	 * The game tick after someone has died.
 	 */
-	private void gameTickDead() {
+	private void physicsTickDead() {
 		// Check the round end counter
 		if (checkRoundEndCounter()) {
 			return;
@@ -436,7 +442,7 @@ public class BlasteroidsGamePanel extends HeadToHeadGamePanel {
 					givePoints(spaceshipA, spaceshipB);
 					givePoints(spaceshipB, spaceshipA);
 					
-					break;	// Break to prevent a dead ship from colliding again
+					break; // Break to prevent a dead ship from colliding again
 				}
 			}
 		}
@@ -493,7 +499,7 @@ public class BlasteroidsGamePanel extends HeadToHeadGamePanel {
 					
 					takePoints(spaceship, spaceship, asteroid);
 					
-					break;	// Break to prevent hitting multiple asteroids
+					break; // Break to prevent hitting multiple asteroids
 				}
 			}
 		}
@@ -690,7 +696,8 @@ public class BlasteroidsGamePanel extends HeadToHeadGamePanel {
 			drawTextMarker(g, "DEMO", yLine1);
 			drawTextMarker(g, "PRESS ANY BUTTON TO START", yLine2);
 		} else if (roundStartCounter < roundStartTicks) {
-			String startString = round > roundsPerGame ? "OVERTIME" : String.format("ROUND %d OF %d", round, roundsPerGame);
+			String startString = round > roundsPerGame ? "OVERTIME"
+					: String.format("ROUND %d OF %d", round, roundsPerGame);
 			drawTextMarker(g, startString, yLine1);
 		} else if (roundOverCounter > 0 && roundOverCounter <= roundOverTicks) {
 			drawTextMarker(g, String.format("ROUND %0$d OVER", round), yLine1);
@@ -712,8 +719,8 @@ public class BlasteroidsGamePanel extends HeadToHeadGamePanel {
 		}
 	}
 	
-	private static Color getOwnerColor(IOwnable bullet) {
-		Player owner = bullet.getOwner();
+	private static Color getOwnerColor(IOwnable ownable) {
+		Player owner = ownable.getOwner();
 		if (owner != null) {
 			return owner.getColor();
 		}

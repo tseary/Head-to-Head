@@ -37,7 +37,9 @@ public abstract class HeadToHeadGamePanel extends JPanel
 	/** The size of the output video on-screen in pixels. */
 	protected int videoWidth, videoHeight;
 	
-	protected Timer gameTimer;
+	// Game loop
+	private GameLoop gameLoopRunnable;
+	private Thread gameLoopThread;
 	
 	// Demo mode
 	private final int demoIdleTime = 60000; // Go to demo mode after 60s of inactivity
@@ -73,8 +75,7 @@ public abstract class HeadToHeadGamePanel extends JPanel
 		initializeButtons();
 		initializePlayers();
 		
-		gameTimer = new Timer(1000 / gameTimerFPS, this);
-		gameTimer.setActionCommand("GameTick");
+		gameLoopRunnable = new GameLoop(this);
 		
 		demoTimer = new Timer(demoIdleTime, this);
 		demoTimer.setActionCommand("DemoMode");
@@ -115,8 +116,27 @@ public abstract class HeadToHeadGamePanel extends JPanel
 		ArcadeButton[] player1Buttons = new ArcadeButton[] {
 				buttons[3], buttons[4], buttons[5] };
 		
-		players[0] = new Player(player0Buttons, new Color(0xff121e));	// Red
-		players[1] = new Player(player1Buttons, new Color(0xf7e700));	// Yellow
+		players[0] = new Player(player0Buttons, new Color(0xff121e)); // Red
+		players[1] = new Player(player1Buttons, new Color(0xf7e700)); // Yellow
+	}
+	
+	public void startGameLoop() {
+		stopGameLoop();
+		
+		// Start a new thread
+		gameLoopThread = new Thread(gameLoopRunnable);
+		gameLoopThread.start();
+	}
+	
+	/**
+	 * Blocks until the game loop thread dies.
+	 */
+	public void stopGameLoop() {
+		// Stop the old thread if there is one
+		if (gameLoopThread != null && gameLoopThread.isAlive()) {
+			gameLoopThread.interrupt();
+			gameLoopThread = null;
+		}
 	}
 	
 	protected void setPlayerHand(int playerIndex, boolean leftHanded) {
@@ -132,7 +152,9 @@ public abstract class HeadToHeadGamePanel extends JPanel
 	}
 	
 	/**
-	 * Override this support different button assignments for left-handed players.
+	 * Override this support different button assignments for left-handed
+	 * players.
+	 * 
 	 * @return
 	 */
 	
@@ -178,16 +200,23 @@ public abstract class HeadToHeadGamePanel extends JPanel
 	}
 	
 	public void togglePause() {
-		if (gameTimer.isRunning()) {
-			gameTimer.stop();
+		if (gameLoopThread != null && gameLoopThread.isAlive()) {
+			stopGameLoop();
 		} else {
-			gameTimer.start();
+			startGameLoop();
 		}
 	}
 	
-	abstract protected void gameTick();
+	abstract public long getPhysicsTickMillis();
 	
-	abstract public void drawVideoFrame(Graphics g);
+	abstract protected void physicsTick();
+	
+	abstract protected void drawVideoFrame(Graphics g);
+	
+	public void render() {
+		drawVideoFrame(videoFrame.createGraphics());
+		repaint();
+	}
 	
 	@Override
 	public void paintComponent(Graphics g) {
@@ -207,16 +236,15 @@ public abstract class HeadToHeadGamePanel extends JPanel
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		switch (e.getActionCommand()) {
-			case "GameTick":
-				gameTick();
-				drawVideoFrame(videoFrame.createGraphics());
-				repaint();
-				break;
-			
-			case "DemoMode":
-				setDemoMode(true);
-				demoTimer.stop();
-				break;
+		case "GameTick":
+			physicsTick();
+			render();
+			break;
+		
+		case "DemoMode":
+			setDemoMode(true);
+			demoTimer.stop();
+			break;
 		}
 	}
 	
@@ -238,26 +266,26 @@ public abstract class HeadToHeadGamePanel extends JPanel
 		}
 		
 		switch (e.getKeyCode()) {
-			case KeyEvent.VK_Q:
-				setPlayerHand(0, true);
-				break;
-			case KeyEvent.VK_W:
-				setPlayerHand(0, false);
-				break;
-			case KeyEvent.VK_U:
-				setPlayerHand(1, true);
-				break;
-			case KeyEvent.VK_I:
-				setPlayerHand(1, false);
-				break;
-			case KeyEvent.VK_ESCAPE:
-				System.exit(0);
-				break;
-			default:
-				for (ArcadeButton button : buttons) {
-					button.keyPressed(e);
-				}
-				break;
+		case KeyEvent.VK_Q:
+			setPlayerHand(0, true);
+			break;
+		case KeyEvent.VK_W:
+			setPlayerHand(0, false);
+			break;
+		case KeyEvent.VK_U:
+			setPlayerHand(1, true);
+			break;
+		case KeyEvent.VK_I:
+			setPlayerHand(1, false);
+			break;
+		case KeyEvent.VK_ESCAPE:
+			System.exit(0);
+			break;
+		default:
+			for (ArcadeButton button : buttons) {
+				button.keyPressed(e);
+			}
+			break;
 		}
 	}
 	

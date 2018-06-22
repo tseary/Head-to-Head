@@ -7,7 +7,7 @@ import blasteroids.BlasteroidsGamePanel;
 public class HeadToHeadMain {
 	
 	public static void main(String[] args) {
-		JFrame frame = new JFrame("Head to Head v0.29");
+		JFrame frame = new JFrame("Head to Head v0.31");
 		
 		// HeadToHeadGamePanel gamePanel = new PongGamePanel();
 		HeadToHeadGamePanel gamePanel = new BlasteroidsGamePanel();
