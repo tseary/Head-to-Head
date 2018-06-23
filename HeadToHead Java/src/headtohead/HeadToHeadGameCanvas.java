@@ -98,6 +98,10 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 		videoHeight = videoScale * gameHeight;
 	}
 	
+	/**
+	 * Creates and populates the array of arcade buttons, with hard-coded key codes:
+	 * { A, S, D, J, K, L }
+	 */
 	protected void initializeButtons() {
 		buttons = new ArcadeButton[6];
 		
@@ -110,6 +114,10 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 		}
 	}
 	
+	/**
+	 * Creates the array of players. Gives each player their color and arcade buttons.
+	 * Call super.initializePlayers() if overriding this function.
+	 */
 	protected void initializePlayers() {
 		players = new Player[2];
 		
@@ -122,6 +130,9 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 		players[1] = new Player(player1Buttons, new Color(0xf7e700));	// Yellow
 	}
 	
+	/**
+	 * Starts the game loop Runnable in a new thread.
+	 */
 	public void startGameLoop() {
 		stopGameLoop();
 		
@@ -141,6 +152,11 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 		}
 	}
 	
+	/**
+	 * Re-orders a player's buttons to suit a right- or left-handed user.
+	 * @param playerIndex The array index of the player.
+	 * @param leftHanded True if the user is left-handed, false if they are right-handed.
+	 */
 	protected void setPlayerHand(int playerIndex, boolean leftHanded) {
 		// Create an array of buttons in the user's preferred order
 		ArcadeButton[] playerButtons = new ArcadeButton[3];
@@ -154,26 +170,31 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	}
 	
 	/**
-	 * Override this support different button assignments for left-handed
-	 * players.
-	 * 
-	 * @return
+	 * Override this to support different button assignments for left-handed players.
+	 * @return A permutation of the array { 0, 1, 2 }.
 	 */
-	
 	protected int[] getLeftHandedButtonOrder() {
 		return new int[] { 0, 1, 2 };
 	}
 	
+	/**
+	 * Gets the width of the game view in pixels.
+	 * @return
+	 */
 	protected int getGameWidth() {
 		return gameWidth;
 	}
 	
+	/**
+	 * Gets the height of the game view in pixels.
+	 * @return
+	 */
 	protected int getGameHeight() {
 		return gameHeight;
 	}
 	
 	/**
-	 * Reset all the game objects, then start the game timer.
+	 * Reset all the game objects, then start the game loop.
 	 */
 	abstract public void newGame();
 	
@@ -181,16 +202,6 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	 * Reset the game objects, but not overall scores etc. for a new round.
 	 */
 	abstract public void newRound();
-	
-	/**
-	 * Do end-of-round things.
-	 */
-	abstract public void roundOver();
-	
-	/**
-	 * Stop the game timer and display the winner of the last game.
-	 */
-	abstract public void gameOver();
 	
 	private void setDemoMode(boolean demoMode) {
 		this.demoMode = demoMode;

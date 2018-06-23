@@ -9,7 +9,7 @@ public class HeadToHeadMain {
 	public static void main(String[] args) {
 		JFrame frame = new JFrame("Head to Head v0.32");
 		
-		// HeadToHeadGamePanel gamePanel = new PongGamePanel();
+		// HeadToHeadGameCanvas gameCanvas = new PongGameCanvas();
 		HeadToHeadGameCanvas gameCanvas = new BlasteroidsGameCanvas();
 		frame.add(gameCanvas);
 		

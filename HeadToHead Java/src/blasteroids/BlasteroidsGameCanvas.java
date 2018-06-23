@@ -22,7 +22,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	// Physics constants
 	private static final int gameTimerFPS = 60;
 	private static final double spaceshipMaxSpeed = 200d;
-	private static final double spaceshipThrust = 150d;
+	private static final double spaceshipThrust = 180d;// 150d;
 	private static final double spaceshipDrag = 0.3d;
 	private static final double stepsPerHalfTurn = Math.round(gameTimerFPS / 3d);
 	private static final double asteroidMinSpeed = 15d, asteroidMaxSpeed = 40d;
@@ -54,6 +54,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	// Buttons
 	protected final int BUTTON_LEFT = 0, BUTTON_RIGHT = 1, BUTTON_SHOOT = 2;
 	protected int[] lastShotCounters;
+	protected boolean[] shootWasPressed;
 	
 	// Sound
 	protected boolean soundOn = true;
@@ -76,6 +77,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		fragments = new ArrayList<Fragment>();
 		
 		lastShotCounters = new int[players.length];
+		shootWasPressed = new boolean[players.length];
 		
 		soundRequests = new HashSet<String>();
 		
@@ -116,6 +118,8 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		round = 0;
 		newRound();
 		
+		gameOverSoundPlayed = false;
+		
 		// Reset player scores
 		for (Player player : players) {
 			setPlayerScore(player, 0);
@@ -130,20 +134,25 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		deltaTimeAlive = getPhysicsTickMillis() / 1000d;
 		deltaTimeDead = deltaTimeAlive / 4d;
 		startGameLoop();
+		
 	}
 	
 	@Override
 	public void newRound() {
 		// Create player ships
-		Spaceship player0Spaceship = new Spaceship(0.25d * 2d * Math.PI, players[0]);
-		player0Spaceship.position.x = getGameWidth() / 2;
-		player0Spaceship.position.y = getGameHeight() / 10;
-		spaceships[0] = player0Spaceship;
+		if (players.length >= 1) {
+			Spaceship player0Spaceship = new Spaceship(0.25d * 2d * Math.PI, players[0]);
+			player0Spaceship.position.x = getGameWidth() / 2;
+			player0Spaceship.position.y = getGameHeight() / 10;
+			spaceships[0] = player0Spaceship;
+		}
 		
-		Spaceship player1Spaceship = new Spaceship(0.75d * 2d * Math.PI, players[1]);
-		player1Spaceship.position.x = getGameWidth() / 2;
-		player1Spaceship.position.y = getGameHeight() * 9 / 10;
-		spaceships[1] = player1Spaceship;
+		if (players.length >= 2) {
+			Spaceship player1Spaceship = new Spaceship(0.75d * 2d * Math.PI, players[1]);
+			player1Spaceship.position.x = getGameWidth() / 2;
+			player1Spaceship.position.y = getGameHeight() * 9 / 10;
+			spaceships[1] = player1Spaceship;
+		}
 		
 		// Reset shot counters
 		for (int i = 0; i < players.length; i++) {
@@ -185,15 +194,6 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		roundOverCounter = 0;
 		
 		round++;
-	}
-	
-	@Override
-	public void roundOver() {}
-	
-	@Override
-	public void gameOver() {
-		roundOverCounter = 0;
-		gameOverSoundPlayed = false;
 	}
 	
 	/**
@@ -283,18 +283,17 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 			// Round over time has elapsed
 			if (demoMode) {
 				// Start a new game for demo mode
-				gameOver();
 				newGame();
 				return true;
 			}
 			
 			// It's not the final round if the scores are tied
-			boolean finalRound = round >= roundsPerGame && !(players[0].score == players[1].score);
+			boolean finalRound = round >= roundsPerGame &&
+					players.length >= 2 && !(players[0].score == players[1].score);
 			
 			if (finalRound) {
 				if (roundOverCounter >= gameOverTicks) {
 					// Game over time has elapsed
-					gameOver();
 					newGame();
 					return true;
 				}
@@ -305,7 +304,6 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 					gameOverSoundPlayed = true;
 				}
 			} else {
-				roundOver();
 				newRound();
 				return true;
 			}
@@ -327,12 +325,14 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 				continue;
 			}
 			
-			// Apply thrust
-			boolean thrustOn = player.getButton(BUTTON_SHOOT).isPressed();
+			// Apply thrust when shoot is held down
+			boolean shootPressed = player.getButton(BUTTON_SHOOT).isPressed();
+			boolean thrustOn = shootPressed && shootWasPressed[i];
 			if (thrustOn) {
 				spaceships[i].acceleration.add(
 						new Vector2D(spaceshipThrust, spaceships[i].angle, true));
 			}
+			shootWasPressed[i] = shootPressed;
 			
 			// Turn
 			if (player.getButton(BUTTON_LEFT).isPressed()) {

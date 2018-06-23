@@ -7,7 +7,7 @@ import headtohead.ArcadeButton;
 import headtohead.HeadToHeadGameCanvas;
 import headtohead.Player;
 
-public class PongGamePanel extends HeadToHeadGameCanvas {
+public class PongGameCanvas extends HeadToHeadGameCanvas {
 	private static final long serialVersionUID = 1L;
 	
 	// Paddles
@@ -25,7 +25,7 @@ public class PongGamePanel extends HeadToHeadGameCanvas {
 	int server = 0;
 	boolean ballOnPaddle = false;
 	
-	public PongGamePanel() {
+	public PongGameCanvas() {
 		super(160, 30);
 		
 		// Create the paddles
@@ -65,16 +65,6 @@ public class PongGamePanel extends HeadToHeadGameCanvas {
 		// Random random = new Random();
 		// vxBall = (random.nextBoolean() ? 1 : -1) * (random.nextInt(3) + 1);
 		// vyBall = (random.nextBoolean() ? 1 : -1) * (random.nextInt(3) + 2);
-	}
-	
-	@Override
-	public void roundOver() {
-		// TODO Auto-generated method stub
-	}
-	
-	@Override
-	public void gameOver() {
-		// TODO Auto-generated method stub
 	}
 	
 	@Override

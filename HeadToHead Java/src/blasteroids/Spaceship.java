@@ -108,7 +108,33 @@ public class Spaceship extends RotatablePhysicsObject implements IOwnable, IPoly
 		// Create arrays
 		Vector2D[] shipOutline = getOutlineVectors();
 		Vector2D[] shipOutlineMidpoints = new Vector2D[shipOutline.length];
-		Collection<Fragment> fragments = new ArrayList<Fragment>(shipOutline.length);
+		Collection<Fragment> fragments = new ArrayList<Fragment>(shipOutline.length + 1);
+		
+		// The proportional speed at which fragments move away from the ship center
+		final double fragmentSplitSpeedMax = 5d;
+		final double fragmentRotationSpeedMax = 6d;
+		
+		Random random = new Random();
+		
+		// Create a little man-shaped fragment
+		double headAngle = this.angle + Math.PI;
+		Fragment fragmentMan = new Fragment(new Vector2D[] {
+				this.position,	// Shoulder
+				this.position.sum(new Vector2D(2d, headAngle, true)),	// Head
+				this.position,	// Shoulder
+				this.position.sum(new Vector2D(3.5d, headAngle + 0.45d * Math.PI, true)),	// Hand
+				this.position.sum(new Vector2D(0.3d, headAngle + 0.6d * Math.PI, true)),	// Armpit
+				this.position.sum(new Vector2D(5d, headAngle + 0.9d * Math.PI, true)),		// Leg
+				this.position.sum(new Vector2D(1.5d, headAngle + Math.PI, true)),				// Crotch
+				this.position.sum(new Vector2D(5d, headAngle + 1.1d * Math.PI, true)),		// Leg
+				this.position.sum(new Vector2D(0.3d, headAngle + 1.4d * Math.PI, true)),	// Armpit
+				this.position.sum(new Vector2D(3.5d, headAngle + 1.55d * Math.PI, true)) },	// Hand
+				null);
+		
+		fragmentMan.velocity = this.velocity.scalarProduct(0.3d);
+		fragmentMan.angularVelocity = fragmentRotationSpeedMax * (2d * random.nextDouble() - 1d);
+		
+		fragments.add(fragmentMan);
 		
 		// Calculate midpoints
 		for (int i = 0; i < shipOutlineMidpoints.length; i++) {
@@ -116,12 +142,7 @@ public class Spaceship extends RotatablePhysicsObject implements IOwnable, IPoly
 					shipOutline[(i + 1) % shipOutline.length]).scalarProduct(0.5d);
 		}
 		
-		// The proportional speed at which fragments move away from the ship center
-		final double fragmentSplitSpeedMax = 5d;
-		final double fragmentRotationSpeedMax = 6d;
-		
 		// Create fragments
-		Random random = new Random();
 		for (int i = 0; i < shipOutline.length; i++) {
 			Fragment fragment = new Fragment(new Vector2D[] {
 					this.position,
@@ -133,7 +154,6 @@ public class Spaceship extends RotatablePhysicsObject implements IOwnable, IPoly
 			fragment.velocity = this.velocity.sum(
 					shipOutline[i].difference(this.position).scalarProduct(
 							fragmentSplitSpeedMax * random.nextDouble()));
-			
 			fragment.angularVelocity = fragmentRotationSpeedMax * (2d * random.nextDouble() - 1d);
 			
 			fragments.add(fragment);

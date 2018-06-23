@@ -5,8 +5,8 @@ public class GameLoop implements Runnable {
 	private HeadToHeadGameCanvas game;
 	
 	// DEBUG
-	private double averageFrameMillis = 0d;
-	private final double smoothing = 0.95d;
+	// private double averageFrameMillis = 0d;
+	// private final double smoothing = 0.95d;
 	
 	public GameLoop(HeadToHeadGameCanvas game) {
 		this.game = game;
@@ -21,7 +21,7 @@ public class GameLoop implements Runnable {
 		long lagMillis = 0;
 		
 		// DEBUG
-		int counter = 0;
+		// int counter = 0;
 		
 		// Clamp the frame rate
 		final long MIN_RENDER_MILLIS = 1000 / 60;
@@ -43,13 +43,13 @@ public class GameLoop implements Runnable {
 			game.render();
 			
 			// Calculate the average frame rate
-			if (DebugMode.isEnabled()) {
+			/*if (DebugMode.isEnabled()) {
 				averageFrameMillis = smoothing * averageFrameMillis + (1d - smoothing) * elapsed;
 				if (++counter >= 100) {
 					System.out.println(averageFrameMillis);
 					counter = 0;
 				}
-			}
+			}*/
 			
 			// Reduce the frame rate if necessary
 			long sleepTime = MIN_RENDER_MILLIS - (System.currentTimeMillis() - current);
