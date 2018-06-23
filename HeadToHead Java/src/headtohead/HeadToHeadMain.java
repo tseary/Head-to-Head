@@ -1,5 +1,7 @@
 package headtohead;
 
+import java.io.File;
+
 import javax.swing.JFrame;
 
 import blasteroids.BlasteroidsGamePanel;
@@ -15,7 +17,8 @@ public class HeadToHeadMain {
 		
 		frame.addKeyListener(gameCanvas);
 		
-		boolean windowed = true;
+		File debugFile = new File("debug.txt");
+		boolean windowed = debugFile.exists();
 		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		if (windowed) {
