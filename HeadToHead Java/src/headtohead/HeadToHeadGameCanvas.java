@@ -4,7 +4,10 @@ import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.DisplayMode;
 import java.awt.Graphics;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Toolkit;
@@ -16,6 +19,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 
 import javax.swing.Timer;
 
@@ -77,12 +82,37 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 		initializeButtons();
 		initializePlayers();
 		
-		gameLoopRunnable = new GameLoop(this);
+		// Create the game loop, with the actual refresh rate if it is available
+		int refreshRate = getDisplayRefreshRate();
+		if (refreshRate != DisplayMode.REFRESH_RATE_UNKNOWN) {
+			gameLoopRunnable = new GameLoop(this, refreshRate);
+		} else {
+			gameLoopRunnable = new GameLoop(this);
+		}
+		
+		if (DebugMode.isEnabled()) {
+			try {
+				PrintStream stream = new PrintStream("debug.txt");
+				stream.println("refresh rate = " + refreshRate);
+				stream.close();
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
 		
 		demoTimer = new Timer(demoIdleTime, this);
 		demoTimer.setActionCommand("DemoMode");
 		
 		sound = new SoundPlayer();
+	}
+	
+	private static int getDisplayRefreshRate() {
+		// Get the screen parameters
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		GraphicsDevice[] screenDevices = ge.getScreenDevices();
+		
+		DisplayMode displayMode = screenDevices[0].getDisplayMode();
+		return displayMode.getRefreshRate();
 	}
 	
 	/** Calculates the best size for the video based on the screen size. */

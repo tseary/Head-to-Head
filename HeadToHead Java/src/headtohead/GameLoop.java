@@ -3,10 +3,16 @@ package headtohead;
 public class GameLoop implements Runnable {
 	
 	private HeadToHeadGameCanvas game;
+	private long minRenderMillis = 1000 / 60;	// Default 60 FPS
 	
 	// DEBUG
 	// private double averageFrameMillis = 0d;
 	// private final double smoothing = 0.95d;
+	
+	public GameLoop(HeadToHeadGameCanvas game, int refreshRate) {
+		this.game = game;
+		minRenderMillis = 1000 / refreshRate;
+	}
 	
 	public GameLoop(HeadToHeadGameCanvas game) {
 		this.game = game;
@@ -22,9 +28,6 @@ public class GameLoop implements Runnable {
 		
 		// DEBUG
 		// int counter = 0;
-		
-		// Clamp the frame rate
-		final long MIN_RENDER_MILLIS = 1000 / 60;
 		
 		while (!Thread.interrupted()) {
 			long current = System.currentTimeMillis();
@@ -52,7 +55,7 @@ public class GameLoop implements Runnable {
 			}*/
 			
 			// Reduce the frame rate if necessary
-			long sleepTime = MIN_RENDER_MILLIS - (System.currentTimeMillis() - current);
+			long sleepTime = minRenderMillis - (System.currentTimeMillis() - current);
 			if (sleepTime > 0) {
 				try {
 					Thread.sleep(sleepTime);
