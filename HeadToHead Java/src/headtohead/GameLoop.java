@@ -40,7 +40,7 @@ public class GameLoop implements Runnable {
 				lagMillis -= PHYSICS_TICK_MILLIS;
 			}
 			
-			game.render();
+			game.render(lagMillis / (double) PHYSICS_TICK_MILLIS);
 			
 			// Calculate the average frame rate
 			/*if (DebugMode.isEnabled()) {

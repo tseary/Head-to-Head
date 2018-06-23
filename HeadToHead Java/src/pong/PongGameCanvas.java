@@ -208,7 +208,7 @@ public class PongGameCanvas extends HeadToHeadGameCanvas {
 	}
 	
 	@Override
-	public void drawVideoFrame(Graphics g) {
+	public void drawVideoFrame(Graphics g, double extrapolate) {
 		// Clear the frame (transparent)
 		g.setColor(Color.DARK_GRAY.darker().darker());
 		g.fillRect(0, 0, getGameWidth(), getGameHeight());

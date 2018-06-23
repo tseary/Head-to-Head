@@ -68,7 +68,7 @@ public class Spaceship extends RotatablePhysicsObject implements IOwnable, IPoly
 	@Override
 	public boolean isTouching(PhysicsObject obj) {
 		// Check if any point on the outline is inside the obj
-		Vector2D[] outline = getOutlineVectors();
+		Vector2D[] outline = getOutlineVectors(0d);
 		double objRadiusSqr = Math.pow(obj.getRadius(), 2d);
 		for (Vector2D point : outline) {
 			if (point.difference(obj.position).lengthSquared() <= objRadiusSqr) {
@@ -81,22 +81,24 @@ public class Spaceship extends RotatablePhysicsObject implements IOwnable, IPoly
 	}
 	
 	@Override
-	public Vector2D[] getOutlineVectors() {
+	public Vector2D[] getOutlineVectors(double extrapolateTime) {
 		// A number of radians < PI
 		final double wingAngle = 2.4d;
 		
 		// The scale of the triangle
 		final double vertexRadius = getRadius() / 0.7d;
 		
+		Vector2D outlinePosition = IPolygon.extrapolatePosition(this, extrapolateTime);
+		
 		return new Vector2D[] {
-				position.sum(new Vector2D(vertexRadius, angle, true)),
-				position.sum(new Vector2D(vertexRadius, angle + wingAngle, true)),
-				position.sum(new Vector2D(vertexRadius, angle - wingAngle, true)) };
+				outlinePosition.sum(new Vector2D(vertexRadius, angle, true)),
+				outlinePosition.sum(new Vector2D(vertexRadius, angle + wingAngle, true)),
+				outlinePosition.sum(new Vector2D(vertexRadius, angle - wingAngle, true)) };
 	}
 	
 	@Override
-	public Polygon getOutline() {
-		return IPolygon.vectorsToPolygon(getOutlineVectors());
+	public Polygon getOutline(double extrapolateTime) {
+		return IPolygon.vectorsToPolygon(getOutlineVectors(extrapolateTime));
 	}
 	
 	/**
@@ -106,7 +108,7 @@ public class Spaceship extends RotatablePhysicsObject implements IOwnable, IPoly
 	 */
 	public Collection<Fragment> getFragments() {
 		// Create arrays
-		Vector2D[] shipOutline = getOutlineVectors();
+		Vector2D[] shipOutline = getOutlineVectors(0d);
 		Vector2D[] shipOutlineMidpoints = new Vector2D[shipOutline.length];
 		Collection<Fragment> fragments = new ArrayList<Fragment>(shipOutline.length + 1);
 		

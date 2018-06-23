@@ -29,19 +29,20 @@ public class Fragment extends RotatablePhysicsObject implements IOwnable, IPolyg
 	}
 	
 	@Override
-	public Vector2D[] getOutlineVectors() {
+	public Vector2D[] getOutlineVectors(double extrapolateTime) {
 		Vector2D[] outlineVectors = new Vector2D[outlineRelativeVectors.length];
+		Vector2D outlinePosition = IPolygon.extrapolatePosition(this, extrapolateTime);
 		for (int i = 0; i < outlineVectors.length; i++) {
 			Vector2D vectorClone = outlineRelativeVectors[i].clone();
 			vectorClone.rotate(angle);
-			outlineVectors[i] = position.sum(vectorClone);
+			outlineVectors[i] = outlinePosition.sum(vectorClone);
 		}
 		return outlineVectors;
 	}
 	
 	@Override
-	public Polygon getOutline() {
-		return IPolygon.vectorsToPolygon(getOutlineVectors());
+	public Polygon getOutline(double extrapolateTime) {
+		return IPolygon.vectorsToPolygon(getOutlineVectors(extrapolateTime));
 	}
 	
 	@Override

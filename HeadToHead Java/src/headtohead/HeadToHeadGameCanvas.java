@@ -224,10 +224,10 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	
 	abstract protected void physicsTick();
 	
-	abstract protected void drawVideoFrame(Graphics g);
+	abstract protected void drawVideoFrame(Graphics g, double extrapolate);
 	
-	public void render() {
-		drawVideoFrame(videoFrame.createGraphics());
+	public void render(double extrapolate) {
+		drawVideoFrame(videoFrame.createGraphics(), extrapolate);
 		BufferStrategy strategy = getBufferStrategy();
 		if (strategy != null) {
 			paint(strategy.getDrawGraphics());

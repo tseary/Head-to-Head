@@ -626,7 +626,10 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	}
 	
 	@Override
-	public void drawVideoFrame(Graphics g) {
+	public void drawVideoFrame(Graphics g, double extrapolate) {
+		// Scale by the delta time
+		extrapolate *= (isRoundOver() ? deltaTimeDead : deltaTimeAlive);
+		
 		// Clear the frame
 		g.setColor(Color.BLACK);
 		g.fillRect(0, 0, getGameWidth(), getGameHeight());
@@ -634,7 +637,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		// Draw the asteroids
 		g.setColor(Color.GRAY);
 		for (Asteroid asteroid : asteroids) {
-			drawPhysicsObject(g, asteroid, true);
+			drawPhysicsObject(g, asteroid, extrapolate, true);
 		}
 		
 		// Draw the player spaceships
@@ -643,19 +646,19 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 				continue;
 			}
 			g.setColor(getOwnerColor(spaceship));
-			drawPolygon(g, spaceship);
+			drawPolygon(g, spaceship, extrapolate);
 		}
 		
 		// Draw the spaceship fragments
 		for (Fragment fragment : fragments) {
 			g.setColor(getOwnerColor(fragment));
-			drawPolygon(g, fragment);
+			drawPolygon(g, fragment, extrapolate);
 		}
 		
 		// Draw the bullets
 		for (Bullet bullet : bullets) {
 			g.setColor(getOwnerColor(bullet));
-			drawPhysicsObject(g, bullet);
+			drawPhysicsObject(g, bullet, extrapolate);
 		}
 		
 		// Draw score markers
@@ -733,14 +736,17 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	 * @param g
 	 * @param obj
 	 */
-	private void drawPhysicsObject(Graphics g, PhysicsObject obj) {
-		drawPhysicsObject(g, obj, false);
+	private void drawPhysicsObject(Graphics g, PhysicsObject obj, double extrapolateTime) {
+		drawPhysicsObject(g, obj, extrapolateTime, false);
 	}
 	
-	private void drawPhysicsObject(Graphics g, PhysicsObject obj, boolean wrap) {
+	private void drawPhysicsObject(Graphics g, PhysicsObject obj, double extrapolateTime, boolean wrap) {
+		
+		Vector2D drawPosition = IPolygon.extrapolatePosition(obj, extrapolateTime);
+		
 		int radius = Math.max(1, (int) obj.getRadius());
-		int xDraw = (int) obj.position.x - radius;
-		int yDraw = (int) obj.position.y - radius;
+		int xDraw = (int) drawPosition.x - radius;
+		int yDraw = (int) drawPosition.y - radius;
 		int diameter = 2 * radius;
 		
 		g.fillOval(xDraw, yDraw, diameter, diameter);
@@ -753,16 +759,16 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		int xOffset = 0, yOffset = 0;
 		
 		// Draw wrapped copies of the object
-		boolean nearLeft = obj.position.x < obj.getRadius(),
-				nearRight = obj.position.x > getGameWidth() - obj.getRadius();
+		boolean nearLeft = drawPosition.x < obj.getRadius(),
+				nearRight = drawPosition.x > getGameWidth() - obj.getRadius();
 		if (nearLeft) {
 			xOffset = getGameWidth();
 		} else if (nearRight) {
 			xOffset = -getGameWidth();
 		}
 		
-		boolean nearTop = obj.position.y < obj.getRadius(),
-				nearBottom = obj.position.y > getGameHeight() - obj.getRadius();
+		boolean nearTop = drawPosition.y < obj.getRadius(),
+				nearBottom = drawPosition.y > getGameHeight() - obj.getRadius();
 		if (nearTop) {
 			yOffset = getGameHeight();
 		} else if (nearBottom) {
@@ -788,9 +794,9 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		}
 	}
 	
-	private static void drawPolygon(Graphics g, IPolygon polygonObj) {
+	private static void drawPolygon(Graphics g, IPolygon polygonObj, double extrapolateTime) {
 		// Get the spaceship outline as a polygon
-		Polygon polygon = polygonObj.getOutline();
+		Polygon polygon = polygonObj.getOutline(extrapolateTime);
 		
 		// Fill and draw outline
 		g.fillPolygon(polygon);

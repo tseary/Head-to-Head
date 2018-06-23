@@ -5,9 +5,10 @@ import java.awt.Polygon;
 import geometry.Vector2D;
 
 public interface IPolygon {
-	public Vector2D[] getOutlineVectors();
 	
-	public Polygon getOutline();
+	public Vector2D[] getOutlineVectors(double extrapolateTime);
+	
+	public Polygon getOutline(double extrapolateTime);
 	
 	/**
 	 * Converts an array of position vectors to a polygon.
@@ -23,5 +24,9 @@ public interface IPolygon {
 			yPoints[i] = (int) outline[i].y;
 		}
 		return new Polygon(xPoints, yPoints, outline.length);
+	}
+	
+	public static Vector2D extrapolatePosition(PhysicsObject obj, double extrapolateTime) {
+		return obj.position.sum(obj.velocity.scalarProduct(extrapolateTime));
 	}
 }
