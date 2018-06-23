@@ -47,7 +47,7 @@ public class PongGamePanel extends HeadToHeadGameCanvas {
 			player.score = 0;
 		}
 		
-		gameTimer.start();
+		startGameLoop();
 	}
 	
 	@Override
@@ -77,6 +77,11 @@ public class PongGamePanel extends HeadToHeadGameCanvas {
 		// TODO Auto-generated method stub
 	}
 	
+	@Override
+	public long getPhysicsTickMillis() {
+		return 33;
+	}
+	
 	private void putBallOnServerPaddle() {
 		xBall = paddles[server].x + (paddles[server].w - ballSize) / 2;
 		if (server == 0) {
@@ -88,7 +93,7 @@ public class PongGamePanel extends HeadToHeadGameCanvas {
 	}
 	
 	@Override
-	protected void gameTick() {
+	protected void physicsTick() {
 		// DEBUG
 		// super.gameTick();
 		

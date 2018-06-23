@@ -38,7 +38,9 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	/** The size of the output video on-screen in pixels. */
 	protected int videoWidth, videoHeight;
 	
-	protected Timer gameTimer;
+	// Game loop
+	private GameLoop gameLoopRunnable;
+	private Thread gameLoopThread;
 	
 	// Demo mode
 	private final int demoIdleTime = 60000; // Go to demo mode after 60s of inactivity
@@ -57,6 +59,7 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 		// Set up the panel
 		setPreferredSize(new Dimension(videoWidth, videoHeight));
 		setBackground(Color.BLACK);
+		setFocusable(false);
 		
 		// Hide cursor
 		BufferedImage cursorImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
@@ -74,8 +77,7 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 		initializeButtons();
 		initializePlayers();
 		
-		gameTimer = new Timer(1000 / gameTimerFPS, this);
-		gameTimer.setActionCommand("GameTick");
+		gameLoopRunnable = new GameLoop(this);
 		
 		demoTimer = new Timer(demoIdleTime, this);
 		demoTimer.setActionCommand("DemoMode");
@@ -120,6 +122,25 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 		players[1] = new Player(player1Buttons, new Color(0xf7e700));	// Yellow
 	}
 	
+	public void startGameLoop() {
+		stopGameLoop();
+		
+		// Start a new thread
+		gameLoopThread = new Thread(gameLoopRunnable);
+		gameLoopThread.start();
+	}
+	
+	/**
+	 * Blocks until the game loop thread dies.
+	 */
+	public void stopGameLoop() {
+		// Stop the old thread if there is one
+		if (gameLoopThread != null && gameLoopThread.isAlive()) {
+			gameLoopThread.interrupt();
+			gameLoopThread = null;
+		}
+	}
+	
 	protected void setPlayerHand(int playerIndex, boolean leftHanded) {
 		// Create an array of buttons in the user's preferred order
 		ArcadeButton[] playerButtons = new ArcadeButton[3];
@@ -133,7 +154,9 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	}
 	
 	/**
-	 * Override this support different button assignments for left-handed players.
+	 * Override this support different button assignments for left-handed
+	 * players.
+	 * 
 	 * @return
 	 */
 	
@@ -179,16 +202,29 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	}
 	
 	public void togglePause() {
-		if (gameTimer.isRunning()) {
-			gameTimer.stop();
+		if (gameLoopThread != null && gameLoopThread.isAlive()) {
+			stopGameLoop();
 		} else {
-			gameTimer.start();
+			startGameLoop();
 		}
 	}
 	
-	abstract protected void gameTick();
+	abstract public long getPhysicsTickMillis();
 	
-	abstract public void drawVideoFrame(Graphics g);
+	abstract protected void physicsTick();
+	
+	abstract protected void drawVideoFrame(Graphics g);
+	
+	public void render() {
+		drawVideoFrame(videoFrame.createGraphics());
+		BufferStrategy strategy = getBufferStrategy();
+		if (strategy != null) {
+			paint(strategy.getDrawGraphics());
+			strategy.show();
+		} else {
+			repaint();
+		}
+	}
 	
 	@Override
 	public void paint(Graphics g) {
@@ -206,18 +242,10 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		switch (e.getActionCommand()) {
-			case "GameTick":
-				gameTick();
-				drawVideoFrame(videoFrame.createGraphics());
-				// repaint();
-				BufferStrategy strategy = getBufferStrategy();
-				if (strategy != null) {
-					paint(strategy.getDrawGraphics());
-					strategy.show();
-				} else {
-					repaint();
-				}
-				break;
+			/*case "GameTick":
+				physicsTick();
+				render();
+				break;*/
 			
 			case "DemoMode":
 				setDemoMode(true);

@@ -1,24 +1,21 @@
 package headtohead;
 
-import java.io.File;
-
 import javax.swing.JFrame;
 
-import blasteroids.BlasteroidsGamePanel;
+import blasteroids.BlasteroidsGameCanvas;
 
 public class HeadToHeadMain {
 	
 	public static void main(String[] args) {
-		JFrame frame = new JFrame("Head to Head v0.31");
+		JFrame frame = new JFrame("Head to Head v0.32");
 		
 		// HeadToHeadGamePanel gamePanel = new PongGamePanel();
-		HeadToHeadGameCanvas gameCanvas = new BlasteroidsGamePanel();
+		HeadToHeadGameCanvas gameCanvas = new BlasteroidsGameCanvas();
 		frame.add(gameCanvas);
 		
 		frame.addKeyListener(gameCanvas);
 		
-		File debugFile = new File("debug.txt");
-		boolean windowed = debugFile.exists();
+		boolean windowed = DebugMode.isEnabled();
 		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		if (windowed) {
