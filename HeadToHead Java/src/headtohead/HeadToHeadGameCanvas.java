@@ -1,5 +1,6 @@
 package headtohead;
 
+import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -13,14 +14,14 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 
-import javax.swing.JPanel;
 import javax.swing.Timer;
 
 import sound.SoundPlayer;
 
-public abstract class HeadToHeadGamePanel extends JPanel
+public abstract class HeadToHeadGameCanvas extends Canvas
 		implements ActionListener, KeyListener, MouseListener {
 	private static final long serialVersionUID = 1L;
 	
@@ -28,10 +29,10 @@ public abstract class HeadToHeadGamePanel extends JPanel
 	protected Player[] players;
 	
 	private final float aspectRatio = 4f / 3f;
+	/** The resolution of the game in pixels. */
 	private int gameWidth, gameHeight;
 	
 	private int videoScale;
-	
 	protected BufferedImage videoFrame;
 	
 	/** The size of the output video on-screen in pixels. */
@@ -47,7 +48,7 @@ public abstract class HeadToHeadGamePanel extends JPanel
 	// Sound
 	protected SoundPlayer sound;
 	
-	public HeadToHeadGamePanel(int newGameWidth, int gameTimerFPS) {
+	public HeadToHeadGameCanvas(int newGameWidth, int gameTimerFPS) {
 		// Calculate the size of the video
 		gameWidth = newGameWidth;
 		gameHeight = (int) (gameWidth * aspectRatio);
@@ -115,7 +116,7 @@ public abstract class HeadToHeadGamePanel extends JPanel
 		ArcadeButton[] player1Buttons = new ArcadeButton[] {
 				buttons[3], buttons[4], buttons[5] };
 		
-		players[0] = new Player(player0Buttons, new Color(0xff121e));	// Red
+		players[0] = new Player(player0Buttons, new Color(0xff1220));	// Red
 		players[1] = new Player(player1Buttons, new Color(0xf7e700));	// Yellow
 	}
 	
@@ -190,9 +191,7 @@ public abstract class HeadToHeadGamePanel extends JPanel
 	abstract public void drawVideoFrame(Graphics g);
 	
 	@Override
-	public void paintComponent(Graphics g) {
-		super.paintComponent(g);
-		
+	public void paint(Graphics g) {
 		int xDraw = (getWidth() - videoWidth) / 2;
 		int yDraw = 0;
 		
@@ -210,7 +209,14 @@ public abstract class HeadToHeadGamePanel extends JPanel
 			case "GameTick":
 				gameTick();
 				drawVideoFrame(videoFrame.createGraphics());
-				repaint();
+				// repaint();
+				BufferStrategy strategy = getBufferStrategy();
+				if (strategy != null) {
+					paint(strategy.getDrawGraphics());
+					strategy.show();
+				} else {
+					repaint();
+				}
 				break;
 			
 			case "DemoMode":

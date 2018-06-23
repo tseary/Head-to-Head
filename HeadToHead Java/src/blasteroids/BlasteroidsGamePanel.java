@@ -12,15 +12,15 @@ import java.util.Set;
 
 import geometry.Vector2D;
 import headtohead.ArcadeButton;
-import headtohead.HeadToHeadGamePanel;
+import headtohead.HeadToHeadGameCanvas;
 import headtohead.IScorable;
 import headtohead.Player;
 
-public class BlasteroidsGamePanel extends HeadToHeadGamePanel {
+public class BlasteroidsGamePanel extends HeadToHeadGameCanvas {
 	private static final long serialVersionUID = 1L;
 	
 	// Physics constants
-	private static final int gameTimerFPS = 24;
+	private static final int gameTimerFPS = 60;
 	private static final double spaceshipMaxSpeed = 200d;
 	private static final double spaceshipThrust = 150d;
 	private static final double spaceshipDrag = 0.3d;

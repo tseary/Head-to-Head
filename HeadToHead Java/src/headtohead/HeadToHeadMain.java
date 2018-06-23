@@ -7,15 +7,15 @@ import blasteroids.BlasteroidsGamePanel;
 public class HeadToHeadMain {
 	
 	public static void main(String[] args) {
-		JFrame frame = new JFrame("Head to Head v0.29");
+		JFrame frame = new JFrame("Head to Head v0.31");
 		
 		// HeadToHeadGamePanel gamePanel = new PongGamePanel();
-		HeadToHeadGamePanel gamePanel = new BlasteroidsGamePanel();
-		frame.setContentPane(gamePanel);
+		HeadToHeadGameCanvas gameCanvas = new BlasteroidsGamePanel();
+		frame.add(gameCanvas);
 		
-		frame.addKeyListener(gamePanel);
+		frame.addKeyListener(gameCanvas);
 		
-		boolean windowed = false;
+		boolean windowed = true;
 		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		if (windowed) {
@@ -28,6 +28,9 @@ public class HeadToHeadMain {
 		}
 		frame.setVisible(true);
 		
-		gamePanel.newGame();
+		// Double-buffer the graphics
+		gameCanvas.createBufferStrategy(2);
+		
+		gameCanvas.newGame();
 	}
 }

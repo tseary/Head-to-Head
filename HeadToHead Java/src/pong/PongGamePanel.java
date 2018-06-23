@@ -4,10 +4,10 @@ import java.awt.Color;
 import java.awt.Graphics;
 
 import headtohead.ArcadeButton;
-import headtohead.HeadToHeadGamePanel;
+import headtohead.HeadToHeadGameCanvas;
 import headtohead.Player;
 
-public class PongGamePanel extends HeadToHeadGamePanel {
+public class PongGamePanel extends HeadToHeadGameCanvas {
 	private static final long serialVersionUID = 1L;
 	
 	// Paddles
