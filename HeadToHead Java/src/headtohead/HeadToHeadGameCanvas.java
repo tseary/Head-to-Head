@@ -48,7 +48,7 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	private Thread gameLoopThread;
 	
 	// Demo mode
-	private final int demoIdleTime = 60000; // Go to demo mode after 60s of inactivity
+	private /*final*/ int demoIdleTime = 60000; // Go to demo mode after 60s of inactivity
 	protected Timer demoTimer;
 	protected boolean demoMode = false;
 	
@@ -98,6 +98,8 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
+			
+			demoIdleTime = 3000;
 		}
 		
 		demoTimer = new Timer(demoIdleTime, this);
@@ -118,10 +120,14 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	/** Calculates the best size for the video based on the screen size. */
 	private void initializeVideoScale() {
 		// Get the screen size
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		videoScale = Math.min((int) screenSize.getWidth() / gameWidth,
-				(int) screenSize.getHeight() / gameHeight);
-		videoScale = Math.max(videoScale, 1);
+		if (DebugMode.isEnabled()) {
+			videoScale = 1;
+		} else {
+			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			videoScale = Math.min((int) screenSize.getWidth() / gameWidth,
+					(int) screenSize.getHeight() / gameHeight);
+			videoScale = Math.max(videoScale, 1);
+		}
 		
 		// Set the video size
 		videoWidth = videoScale * gameWidth;
@@ -166,6 +172,9 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	public void startGameLoop() {
 		stopGameLoop();
 		
+		// Start the demo timer
+		demoTimer.start();
+		
 		// Start a new thread
 		gameLoopThread = new Thread(gameLoopRunnable);
 		gameLoopThread.start();
@@ -175,6 +184,9 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	 * Blocks until the game loop thread dies.
 	 */
 	public void stopGameLoop() {
+		// Stop the demo timer
+		demoTimer.stop();
+		
 		// Stop the old thread if there is one
 		if (gameLoopThread != null && gameLoopThread.isAlive()) {
 			gameLoopThread.interrupt();
@@ -244,10 +256,28 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	private void setDemoMode(boolean demoMode) {
 		this.demoMode = demoMode;
 		
-		// Start a new game when leaving demo mode
-		if (!this.demoMode) {
-			newGame();
+		// TODO fix this
+		// Set the players to human or computer control
+		InputSource player0InputSource, player1InputSource;
+		if (this.demoMode) {
+			// Computer
+			player0InputSource = new DemoInputSource(new IButton[] {
+					new VirtualButton(), new VirtualButton(), new VirtualButton() });
+			player1InputSource = new DemoInputSource(new IButton[] {
+					new VirtualButton(), new VirtualButton(), new VirtualButton() });
+		} else {
+			// Human
+			// TODO This will lose the handedness setting
+			player0InputSource = new InputSource(new IButton[] {
+					buttons[0], buttons[1], buttons[2] });
+			player1InputSource = new InputSource(new IButton[] {
+					buttons[3], buttons[4], buttons[5] });
 		}
+		players[0].setInputSource(player0InputSource);
+		players[1].setInputSource(player1InputSource);
+		
+		// Start a new game when entering or leaving demo mode
+		newGame();
 	}
 	
 	public void togglePause() {

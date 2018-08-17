@@ -13,6 +13,7 @@ import java.util.Set;
 import geometry.Vector2D;
 import headtohead.ArcadeButton;
 import headtohead.HeadToHeadGameCanvas;
+import headtohead.IButton;
 import headtohead.IScorable;
 import headtohead.Player;
 
@@ -126,7 +127,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		}
 		
 		// Reset all button press counters
-		for (ArcadeButton button : buttons) {
+		for (IButton button : buttons) {
 			button.resetPressCounter();
 		}
 		
@@ -134,7 +135,6 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		deltaTimeAlive = getPhysicsTickMillis() / 1000d;
 		deltaTimeDead = deltaTimeAlive / 4d;
 		startGameLoop();
-		
 	}
 	
 	@Override

@@ -7,7 +7,8 @@ public final class DebugMode {
 		throw new AssertionError();
 	}
 	
-	private static boolean debugMode = false;
+	/** Set this to true to enable debug behaviour. */
+	private static boolean debugMode = true;
 	
 	static {
 		File debugFile = new File("debug.txt");

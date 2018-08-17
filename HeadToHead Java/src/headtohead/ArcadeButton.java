@@ -31,16 +31,6 @@ public class ArcadeButton implements IButton, KeyListener {
 		pressCounter = 0;
 	}
 	
-	// TODO What is this?
-	/*public void keyPressed() {
-		// Ignore repeated press events
-		if (pressed) {
-			return;
-		}
-		pressed = true;
-		pressCounter++;
-	}*/
-	
 	@Override
 	public void keyTyped(KeyEvent e) {}
 	
