@@ -3,10 +3,16 @@ package pong;
 import java.awt.Color;
 import java.awt.Graphics;
 
-import headtohead.ArcadeButton;
 import headtohead.HeadToHeadGameCanvas;
+import headtohead.IButton;
 import headtohead.Player;
 
+/**
+ * A very bad Pong implementation for API testing.
+ * 
+ * @author Thomas
+ *
+ */
 public class PongGameCanvas extends HeadToHeadGameCanvas {
 	private static final long serialVersionUID = 1L;
 	
@@ -111,7 +117,7 @@ public class PongGameCanvas extends HeadToHeadGameCanvas {
 		
 		// Serve
 		if (ballOnPaddle) {
-			ArcadeButton serveButton = players[server].getButton(1);
+			IButton serveButton = players[server].getButton(1);
 			if (serveButton.getPressCounter() > 0) {
 				ballOnPaddle = false;
 				

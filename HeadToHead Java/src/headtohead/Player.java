@@ -3,15 +3,17 @@ package headtohead;
 import java.awt.Color;
 
 public class Player {
-	
-	private ArcadeButton[] buttons;
+	/**
+	 * The buttons that control the player's actions.
+	 */
+	private InputSource inputSource;
 	
 	private Color color;
 	
 	public int score = 0;
 	
-	public Player(ArcadeButton[] buttons, Color color) {
-		setButtons(buttons);
+	public Player(InputSource inputSource, Color color) {
+		setInputSource(inputSource);
 		this.color = color;
 	}
 	
@@ -20,15 +22,12 @@ public class Player {
 	 * 
 	 * @param buttons
 	 */
-	public void setButtons(ArcadeButton[] buttons) {
-		this.buttons = new ArcadeButton[buttons.length];
-		for (int i = 0; i < this.buttons.length; i++) {
-			this.buttons[i] = buttons[i];
-		}
+	public void setInputSource(InputSource inputSource) {
+		this.inputSource = inputSource;
 	}
 	
-	public ArcadeButton getButton(int i) {
-		return buttons[i];
+	public IButton getButton(int i) {
+		return inputSource.buttons[i];
 	}
 	
 	public Color getColor() {
@@ -37,10 +36,6 @@ public class Player {
 	
 	@Override
 	public String toString() {
-		String string = color.toString() + "\t";
-		for (ArcadeButton button : buttons) {
-			string += (button.isPressed() ? button.getPressCounter() : 0) + " ";
-		}
-		return string;
+		return color.toString() + "\t" + inputSource.toString();
 	}
 }

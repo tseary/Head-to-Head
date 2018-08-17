@@ -129,8 +129,8 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	}
 	
 	/**
-	 * Creates and populates the array of arcade buttons, with hard-coded key codes:
-	 * { A, S, D, J, K, L }
+	 * Creates and populates the array of arcade buttons, with hard-coded key
+	 * codes: { A, S, D, J, K, L }
 	 */
 	protected void initializeButtons() {
 		buttons = new ArcadeButton[6];
@@ -145,19 +145,19 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	}
 	
 	/**
-	 * Creates the array of players. Gives each player their color and arcade buttons.
-	 * Call super.initializePlayers() if overriding this function.
+	 * Creates the array of players. Gives each player their color and arcade
+	 * buttons. Call super.initializePlayers() if overriding this function.
 	 */
 	protected void initializePlayers() {
 		players = new Player[2];
 		
-		ArcadeButton[] player0Buttons = new ArcadeButton[] {
-				buttons[0], buttons[1], buttons[2] };
-		ArcadeButton[] player1Buttons = new ArcadeButton[] {
-				buttons[3], buttons[4], buttons[5] };
+		InputSource player0InputSource = new InputSource(new IButton[] {
+				buttons[0], buttons[1], buttons[2] });
+		InputSource player1InputSource = new InputSource(new IButton[] {
+				buttons[3], buttons[4], buttons[5] });
 		
-		players[0] = new Player(player0Buttons, new Color(0xff1220));	// Red
-		players[1] = new Player(player1Buttons, new Color(0xf7e700));	// Yellow
+		players[0] = new Player(player0InputSource, new Color(0xff1220)); // Red
+		players[1] = new Player(player1InputSource, new Color(0xf7e700)); // Yellow
 	}
 	
 	/**
@@ -184,23 +184,29 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	
 	/**
 	 * Re-orders a player's buttons to suit a right- or left-handed user.
-	 * @param playerIndex The array index of the player.
-	 * @param leftHanded True if the user is left-handed, false if they are right-handed.
+	 * 
+	 * @param playerIndex
+	 *            The array index of the player.
+	 * @param leftHanded
+	 *            True if the user is left-handed, false if they are
+	 *            right-handed.
 	 */
 	protected void setPlayerHand(int playerIndex, boolean leftHanded) {
 		// Create an array of buttons in the user's preferred order
-		ArcadeButton[] playerButtons = new ArcadeButton[3];
+		IButton[] playerButtons = new IButton[3];
 		int[] buttonIndexes = leftHanded ? getLeftHandedButtonOrder() : new int[] { 0, 1, 2 };
 		for (int i = 0; i < 3; i++) {
 			playerButtons[i] = buttons[3 * playerIndex + buttonIndexes[i]];
 		}
 		
 		// Set the buttons
-		players[playerIndex].setButtons(playerButtons);
+		players[playerIndex].setInputSource(new InputSource(playerButtons));
 	}
 	
 	/**
-	 * Override this to support different button assignments for left-handed players.
+	 * Override this to support different button assignments for left-handed
+	 * players.
+	 * 
 	 * @return A permutation of the array { 0, 1, 2 }.
 	 */
 	protected int[] getLeftHandedButtonOrder() {
@@ -209,6 +215,7 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	
 	/**
 	 * Gets the width of the game view in pixels.
+	 * 
 	 * @return
 	 */
 	protected int getGameWidth() {
@@ -217,6 +224,7 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	
 	/**
 	 * Gets the height of the game view in pixels.
+	 * 
 	 * @return
 	 */
 	protected int getGameHeight() {
@@ -283,15 +291,15 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		switch (e.getActionCommand()) {
-			/*case "GameTick":
-				physicsTick();
-				render();
-				break;*/
-			
-			case "DemoMode":
-				setDemoMode(true);
-				demoTimer.stop();
-				break;
+		/*case "GameTick":
+			physicsTick();
+			render();
+			break;*/
+		
+		case "DemoMode":
+			setDemoMode(true);
+			demoTimer.stop();
+			break;
 		}
 	}
 	
@@ -313,26 +321,26 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 		}
 		
 		switch (e.getKeyCode()) {
-			case KeyEvent.VK_Q:
-				setPlayerHand(0, true);
-				break;
-			case KeyEvent.VK_W:
-				setPlayerHand(0, false);
-				break;
-			case KeyEvent.VK_U:
-				setPlayerHand(1, true);
-				break;
-			case KeyEvent.VK_I:
-				setPlayerHand(1, false);
-				break;
-			case KeyEvent.VK_ESCAPE:
-				System.exit(0);
-				break;
-			default:
-				for (ArcadeButton button : buttons) {
-					button.keyPressed(e);
-				}
-				break;
+		case KeyEvent.VK_Q:
+			setPlayerHand(0, true);
+			break;
+		case KeyEvent.VK_W:
+			setPlayerHand(0, false);
+			break;
+		case KeyEvent.VK_U:
+			setPlayerHand(1, true);
+			break;
+		case KeyEvent.VK_I:
+			setPlayerHand(1, false);
+			break;
+		case KeyEvent.VK_ESCAPE:
+			System.exit(0);
+			break;
+		default:
+			for (ArcadeButton button : buttons) {
+				button.keyPressed(e);
+			}
+			break;
 		}
 	}
 	
