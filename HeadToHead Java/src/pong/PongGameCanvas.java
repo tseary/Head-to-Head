@@ -238,7 +238,7 @@ public class PongGameCanvas extends HeadToHeadGameCanvas {
 	}
 	
 	@Override
-	protected int[] getLeftHandedButtonOrder() {
+	protected int[] getLeftHandedButtonRemap() {
 		return null;
 	}
 }

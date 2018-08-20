@@ -21,6 +21,7 @@ public class GameLoop implements Runnable {
 	// See http://gameprogrammingpatterns.com/game-loop.html
 	@Override
 	public void run() {
+		System.out.println("run(), game = " + game.toString());
 		final long PHYSICS_TICK_MILLIS = game.getPhysicsTickMillis();
 		
 		long previous = System.currentTimeMillis();
@@ -60,9 +61,11 @@ public class GameLoop implements Runnable {
 				try {
 					Thread.sleep(sleepTime);
 				} catch (InterruptedException e) {
+					System.out.println("run() sleep interrupted");
 					return;
 				}
 			}
 		}
+		System.out.println("run() was interrupted");
 	}
 }

@@ -8,7 +8,7 @@ import javax.swing.Timer;
 
 public class DemoInputSource extends InputSource implements ActionListener {
 	
-	private Timer timer;
+	private static Timer timer;
 	private Random random;
 	
 	/**
@@ -21,15 +21,19 @@ public class DemoInputSource extends InputSource implements ActionListener {
 		
 		random = new Random();
 		
-		timer = new Timer(100, this);
-		timer.start();
+		if (timer == null) {
+			timer = new Timer(166, this);
+			timer.start();
+		} else {
+			timer.addActionListener(this);
+		}
 	}
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// Set the rotation
 		rotation += random.nextInt(3) - 1;
-		rotation = Math.min(Math.max(-1, rotation), 1);
+		rotation = Math.min(Math.max(-2, rotation), 2);
 		
 		if (rotation == -1) {
 			((VirtualButton) buttons[0]).press();

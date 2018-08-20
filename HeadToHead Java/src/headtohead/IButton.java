@@ -17,7 +17,7 @@ public interface IButton {
 	public int getPressCounter();
 	
 	/**
-	 * Clears the of times that this button has been pressed.
+	 * Clears the number of times that this button has been pressed.
 	 */
 	public void resetPressCounter();
 }

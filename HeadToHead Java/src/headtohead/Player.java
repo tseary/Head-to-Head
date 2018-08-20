@@ -26,8 +26,12 @@ public class Player {
 		this.inputSource = inputSource;
 	}
 	
-	public IButton getButton(int i) {
-		return inputSource.buttons[i];
+	public InputSource getInputSource() {
+		return inputSource;
+	}
+	
+	public IButton getButton(int index) {
+		return inputSource.getButton(index);
 	}
 	
 	public Color getColor() {

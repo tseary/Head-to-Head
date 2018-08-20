@@ -104,6 +104,7 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 		
 		demoTimer = new Timer(demoIdleTime, this);
 		demoTimer.setActionCommand("DemoMode");
+		demoTimer.setRepeats(false);
 		
 		sound = new SoundPlayer();
 	}
@@ -170,10 +171,14 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	 * Starts the game loop Runnable in a new thread.
 	 */
 	public void startGameLoop() {
+		System.out.println("startGameLoop()");
+		System.out.flush();
 		stopGameLoop();
 		
-		// Start the demo timer
-		demoTimer.start();
+		// Start the demo timer if we are not in demo mode already
+		if (!demoMode) {
+			demoTimer.start();
+		}
 		
 		// Start a new thread
 		gameLoopThread = new Thread(gameLoopRunnable);
@@ -184,11 +189,13 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	 * Blocks until the game loop thread dies.
 	 */
 	public void stopGameLoop() {
+		System.out.println("stopGameLoop()");
 		// Stop the demo timer
 		demoTimer.stop();
 		
 		// Stop the old thread if there is one
 		if (gameLoopThread != null && gameLoopThread.isAlive()) {
+			System.out.println("stopping old game loop thread");
 			gameLoopThread.interrupt();
 			gameLoopThread = null;
 		}
@@ -204,15 +211,25 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	 *            right-handed.
 	 */
 	protected void setPlayerHand(int playerIndex, boolean leftHanded) {
-		// Create an array of buttons in the user's preferred order
-		IButton[] playerButtons = new IButton[3];
-		int[] buttonIndexes = leftHanded ? getLeftHandedButtonOrder() : new int[] { 0, 1, 2 };
-		for (int i = 0; i < 3; i++) {
-			playerButtons[i] = buttons[3 * playerIndex + buttonIndexes[i]];
+		InputSource playerInputSource = players[playerIndex].getInputSource();
+		
+		// If the player doesn't have an input source, create an array of buttons in the right-handed order
+		/*if (playerInputSource == null) {
+			IButton[] playerButtons = new IButton[3];
+			for (int i = 0; i < 3; i++) {
+				playerButtons[i] = buttons[3 * playerIndex + i];
+			}
+			players[playerIndex].setInputSource(new InputSource(playerButtons));
+		}*/
+		
+		// Remap the buttons
+		if (leftHanded) {
+			playerInputSource.setButtonRemap(getLeftHandedButtonRemap());
+		} else {
+			playerInputSource.clearButtonRemap();
 		}
 		
-		// Set the buttons
-		players[playerIndex].setInputSource(new InputSource(playerButtons));
+		// TODO Shuffle the press counters too
 	}
 	
 	/**
@@ -221,7 +238,7 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	 * 
 	 * @return A permutation of the array { 0, 1, 2 }.
 	 */
-	protected int[] getLeftHandedButtonOrder() {
+	protected int[] getLeftHandedButtonRemap() {
 		return new int[] { 0, 1, 2 };
 	}
 	
@@ -321,15 +338,14 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		switch (e.getActionCommand()) {
-		/*case "GameTick":
-			physicsTick();
-			render();
-			break;*/
-		
-		case "DemoMode":
-			setDemoMode(true);
-			demoTimer.stop();
-			break;
+			/*case "GameTick":
+				physicsTick();
+				render();
+				break;*/
+			
+			case "DemoMode":
+				setDemoMode(true);
+				break;
 		}
 	}
 	
@@ -342,35 +358,37 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	
 	@Override
 	public void keyPressed(KeyEvent e) {
-		// Restart the demo timer
-		demoTimer.restart();
-		
-		// Exit demo mode
 		if (demoMode) {
+			// Exit demo mode
 			setDemoMode(false);
+		} else {
+			// Restart the demo timer
+			if (demoTimer.isRunning()) {
+				demoTimer.restart();
+			}
 		}
 		
 		switch (e.getKeyCode()) {
-		case KeyEvent.VK_Q:
-			setPlayerHand(0, true);
-			break;
-		case KeyEvent.VK_W:
-			setPlayerHand(0, false);
-			break;
-		case KeyEvent.VK_U:
-			setPlayerHand(1, true);
-			break;
-		case KeyEvent.VK_I:
-			setPlayerHand(1, false);
-			break;
-		case KeyEvent.VK_ESCAPE:
-			System.exit(0);
-			break;
-		default:
-			for (ArcadeButton button : buttons) {
-				button.keyPressed(e);
-			}
-			break;
+			case KeyEvent.VK_Q:
+				setPlayerHand(0, true);
+				break;
+			case KeyEvent.VK_W:
+				setPlayerHand(0, false);
+				break;
+			case KeyEvent.VK_U:
+				setPlayerHand(1, true);
+				break;
+			case KeyEvent.VK_I:
+				setPlayerHand(1, false);
+				break;
+			case KeyEvent.VK_ESCAPE:
+				System.exit(0);
+				break;
+			default:
+				for (ArcadeButton button : buttons) {
+					button.keyPressed(e);
+				}
+				break;
 		}
 	}
 	

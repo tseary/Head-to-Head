@@ -109,7 +109,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	}
 	
 	@Override
-	protected int[] getLeftHandedButtonOrder() {
+	protected int[] getLeftHandedButtonRemap() {
 		return new int[] { 1, 2, 0 };
 	}
 	
