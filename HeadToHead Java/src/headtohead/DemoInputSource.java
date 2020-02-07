@@ -6,6 +6,10 @@ import java.util.Random;
 
 import javax.swing.Timer;
 
+import button.IButton;
+import button.InputSource;
+import button.VirtualButton;
+
 public class DemoInputSource extends InputSource implements ActionListener {
 	
 	private static Timer timer;

@@ -2,6 +2,9 @@ package headtohead;
 
 import java.awt.Color;
 
+import button.IButton;
+import button.InputSource;
+
 public class Player {
 	/**
 	 * The buttons that control the player's actions.
@@ -32,6 +35,10 @@ public class Player {
 	
 	public IButton getButton(int index) {
 		return inputSource.getButton(index);
+	}
+	
+	public void setColor(Color newColor) {
+		color = newColor;
 	}
 	
 	public Color getColor() {

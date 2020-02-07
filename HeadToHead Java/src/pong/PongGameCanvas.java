@@ -3,8 +3,8 @@ package pong;
 import java.awt.Color;
 import java.awt.Graphics;
 
+import button.IButton;
 import headtohead.HeadToHeadGameCanvas;
-import headtohead.IButton;
 import headtohead.Player;
 
 /**

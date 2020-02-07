@@ -2,6 +2,7 @@ package blasteroids;
 
 import geometry.Vector2D;
 import headtohead.IScorable;
+import physics.PhysicsObject;
 
 public class Asteroid extends PhysicsObject implements IScorable {
 	protected int size;

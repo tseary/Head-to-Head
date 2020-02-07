@@ -1,4 +1,4 @@
-package headtohead;
+package button;
 
 // For a human player, a collection of arcade buttons
 // For a computer player, an collection of emulated buttons

@@ -1,4 +1,4 @@
-package blasteroids;
+package tankbattle;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -7,12 +7,15 @@ import java.awt.Polygon;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 
+import blasteroids.Bullet;
+import blasteroids.Fragment;
+import blasteroids.ScoreMarker;
 import button.ArcadeButton;
 import button.IButton;
 import geometry.Vector2D;
+import headtohead.DebugMode;
 import headtohead.HeadToHeadGameCanvas;
 import headtohead.IOwnable;
 import headtohead.IScorable;
@@ -20,16 +23,18 @@ import headtohead.Player;
 import physics.IPolygon;
 import physics.PhysicsObject;
 
-public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
+// TODO Add trees as visual cover and walls (buildings) as physical cover
+
+public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	private static final long serialVersionUID = 1L;
 	
 	// Physics constants
 	private static final int gameTimerFPS = 60;
-	private static final double spaceshipMaxSpeed = 200d;
-	private static final double spaceshipThrust = 180d;// 150d;
-	private static final double spaceshipDrag = 0.3d;
-	private static final double stepsPerHalfTurn = Math.round(gameTimerFPS / 3d);
-	private static final double asteroidMinSpeed = 15d, asteroidMaxSpeed = 40d;
+	private static final double tankMaxSpeed = 70d;
+	private static final double tankThrust = 180d;
+	private static final double tankDrag = 2d;
+	private static final double tankSteeringAccel = 8d;
+	private static final double tankSteeringDrag = 6d;
 	private static final double bulletMaxAge = 2.333d;
 	protected double deltaTimeAlive;
 	protected double deltaTimeDead;
@@ -40,15 +45,14 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	}
 	
 	// Physics objects
-	protected Spaceship[] spaceships;
-	protected List<Asteroid> asteroids;
+	protected Tank[] tanks;
 	protected List<Bullet> bullets;
 	protected List<Fragment> fragments;
 	
 	// Game timing
 	private static final int roundStartTicks = gameTimerFPS;
 	private int roundStartCounter;
-	private static final int roundOverTicks = (int) (1d * gameTimerFPS);
+	private static final int roundOverTicks = (int) (2d * gameTimerFPS);
 	private static final int gameOverTicks = roundOverTicks + (int) (2.5d * gameTimerFPS);
 	private static final int roundsPerGame = 3;
 	private int roundOverCounter;
@@ -56,7 +60,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	private boolean gameOverSoundPlayed;
 	
 	// Buttons
-	protected final int BUTTON_LEFT = 0, BUTTON_RIGHT = 1, BUTTON_SHOOT = 2;
+	protected final int BUTTON_LEFT = 0, BUTTON_SHOOT = 1, BUTTON_RIGHT = 2;
 	protected int[] lastShotCounters;
 	protected boolean[] shootWasPressed;
 	
@@ -71,12 +75,11 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	/** Permanent markers that show each player's score. */
 	protected List<ScoreMarker> playerScoreMarkers;
 	
-	public BlasteroidsGameCanvas() {
+	public TankBattleGameCanvas() {
 		super(400, gameTimerFPS);
 		
 		// Create lists
-		spaceships = new Spaceship[players.length];
-		asteroids = new ArrayList<Asteroid>();
+		tanks = new Tank[players.length];
 		bullets = new ArrayList<Bullet>();
 		fragments = new ArrayList<Fragment>();
 		
@@ -91,6 +94,8 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	@Override
 	protected void initializePlayers() {
 		super.initializePlayers();
+		
+		players[0].setColor(new Color(0x00c0ff));
 		
 		// Create score markers
 		playerScoreMarkers = new ArrayList<ScoreMarker>();
@@ -113,6 +118,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	
 	@Override
 	protected int[] getLeftHandedButtonRemap() {
+		// TODO
 		return new int[] { 1, 2, 0 };
 	}
 	
@@ -144,46 +150,23 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	public void newRound() {
 		// Create player ships
 		if (players.length >= 1) {
-			Spaceship player0Spaceship = new Spaceship(0.25d * 2d * Math.PI, players[0]);
-			player0Spaceship.position.x = getGameWidth() / 2;
-			player0Spaceship.position.y = getGameHeight() / 10;
-			spaceships[0] = player0Spaceship;
+			Tank player0Tank = new Tank(0.25d * 2d * Math.PI, players[0]);
+			player0Tank.position.x = getGameWidth() / 2;
+			player0Tank.position.y = getGameHeight() / 10;
+			tanks[0] = player0Tank;
 		}
 		
 		if (players.length >= 2) {
-			Spaceship player1Spaceship = new Spaceship(0.75d * 2d * Math.PI, players[1]);
-			player1Spaceship.position.x = getGameWidth() / 2;
-			player1Spaceship.position.y = getGameHeight() * 9 / 10;
-			spaceships[1] = player1Spaceship;
+			Tank player1Tank = new Tank(0.75d * 2d * Math.PI, players[1]);
+			player1Tank.position.x = getGameWidth() / 2;
+			player1Tank.position.y = getGameHeight() * 9 / 10;
+			tanks[1] = player1Tank;
 		}
 		
 		// Reset shot counters
 		for (int i = 0; i < players.length; i++) {
 			players[i].getButton(BUTTON_SHOOT).resetPressCounter();
 			lastShotCounters[i] = 0;
-		}
-		
-		// Create asteroids
-		asteroids.clear();
-		Random random = new Random();
-		double yOffset = 0.30d, yRange = 1d - 2d * yOffset; // Vertical position
-		for (int i = 0; i < 3 + round; i++) {
-			boolean bigOne = random.nextDouble() < 0.1d;
-			
-			Asteroid asteroid = new Asteroid(bigOne ? 3 : 2);
-			asteroid.position.x = random.nextInt(getGameWidth());
-			asteroid.position.y = (int) Math.round(getGameHeight() *
-					(random.nextDouble() * yRange + yOffset));
-			
-			asteroid.velocity = new Vector2D(random.nextDouble() *
-					(asteroidMaxSpeed - asteroidMinSpeed) + asteroidMinSpeed,
-					2d * Math.PI * random.nextDouble(), true);
-			
-			asteroids.add(asteroid);
-			
-			if (bigOne) {
-				i++;
-			}
 		}
 		
 		// Clear lists
@@ -249,13 +232,8 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		ageScoreMarkers(deltaTimeAlive);
 		shootBullets();
 		
-		collideSpaceshipToSpaceship();
-		collideBulletToSpaceship();
-		collideAsteroidToSpaceship();
-		
-		collideAsteroidToAsteroid();
-		
-		collideBulletToAsteroid();
+		collideTankToTank();
+		collideBulletToTank();
 	}
 	
 	/**
@@ -272,9 +250,6 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		moveEverything(deltaTimeDead);
 		ageScoreMarkers(deltaTimeAlive);
 		shootBullets();
-		
-		// No more spaceship or bullet collisions after someone is dead
-		collideAsteroidToAsteroid();
 	}
 	
 	/**
@@ -320,46 +295,54 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 			Player player = players[i];
 			
 			// Apply drag always
-			spaceships[i].acceleration = spaceships[i].velocity
-					.scalarProduct(-spaceshipDrag);
+			tanks[i].acceleration = tanks[i].velocity
+					.scalarProduct(-tankDrag);
+			tanks[i].angularAcceleration = -tanks[i].angularVelocity * tankSteeringDrag;
 			
 			// Skip if dead
-			if (!spaceships[i].isAlive()) {
+			if (!tanks[i].isAlive()) {
 				continue;
 			}
 			
-			// Apply thrust when shoot is held down
-			boolean shootPressed = player.getButton(BUTTON_SHOOT).isPressed();
-			boolean thrustOn = shootPressed && shootWasPressed[i];
-			if (thrustOn) {
-				spaceships[i].acceleration.add(
-						new Vector2D(spaceshipThrust, spaceships[i].angle, true));
-			}
-			shootWasPressed[i] = shootPressed;
+			// Get skid steer button presses
+			boolean leftPressed = player.getButton(BUTTON_LEFT).isPressed();
+			boolean rightPressed = player.getButton(BUTTON_RIGHT).isPressed();
 			
-			// Turn
-			if (player.getButton(BUTTON_LEFT).isPressed()) {
-				spaceships[i].angle -= Math.PI / stepsPerHalfTurn;
-			} else if (player.getButton(BUTTON_RIGHT).isPressed()) {
-				spaceships[i].angle += Math.PI / stepsPerHalfTurn;
+			if (leftPressed) {
+				if (rightPressed) {
+					// Forward
+					tanks[i].acceleration.add(new Vector2D(tankThrust, tanks[i].angle, true));
+				} else {
+					// Left
+					// tanks[i].angle -= Math.PI / stepsPerHalfTurn;
+					tanks[i].angularAcceleration -= tankSteeringAccel;
+				}
+			} else {
+				if (rightPressed) {
+					// Right
+					// tanks[i].angle += Math.PI / stepsPerHalfTurn;
+					tanks[i].angularAcceleration += tankSteeringAccel;
+				} else {
+					// Stop
+				}
 			}
+			
+			// Rotate velocity so that the tanks can't slide sideways
+			/*Vector2D unit = new Vector2D(1d, tanks[i].angle, true);
+			double velocityMagnitude = tanks[i].velocity.dotProduct(unit);
+			tanks[i].velocity = new Vector2D(velocityMagnitude, tanks[i].angle, true);*/
+			tanks[i].velocity.setAngle(tanks[i].angle);
 		}
 	}
 	
 	private void moveEverything(double deltaTime) {
-		// Move asteroids
-		for (Asteroid asteroid : asteroids) {
-			asteroid.move(deltaTime);
-			asteroid.wrapPosition(getGameWidth(), getGameHeight());
-		}
-		
 		// Move all spaceships
-		for (Spaceship spaceship : spaceships) {
+		for (Tank spaceship : tanks) {
 			spaceship.move(deltaTime);
 			
 			// Clamp the speed
-			if (spaceship.velocity.length() > spaceshipMaxSpeed) {
-				spaceship.velocity.setLength(spaceshipMaxSpeed);
+			if (spaceship.velocity.length() > tankMaxSpeed) {
+				spaceship.velocity.setLength(tankMaxSpeed);
 			}
 			
 			spaceship.wrapPosition(getGameWidth(), getGameHeight());
@@ -402,7 +385,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 			Player player = players[i];
 			
 			// Cannot shoot when dead
-			if (!spaceships[i].isAlive()) {
+			if (!tanks[i].isAlive()) {
 				continue;
 			}
 			
@@ -410,50 +393,52 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 			int shotCounter = player.getButton(BUTTON_SHOOT)
 					.getPressCounter();
 			if (shotCounter > lastShotCounters[i]) {
-				Bullet shot = spaceships[i].shoot();
+				Bullet shot = tanks[i].shoot();
 				if (shot != null) {
 					bullets.add(shot);
-					requestSound("Pew");
+					requestSound("PwankC");
 				}
 				lastShotCounters[i] = shotCounter;
 			}
 		}
 	}
 	
-	private void collideSpaceshipToSpaceship() {
-		// Calculate spaceship-spaceship collisions
-		for (int a = 0; a < spaceships.length - 1; a++) {
-			Spaceship spaceshipA = spaceships[a];
-			if (!spaceshipA.isAlive()) {
+	private void collideTankToTank() {
+		// Calculate tank-tank collisions
+		for (int a = 0; a < tanks.length - 1; a++) {
+			Tank tankA = tanks[a];
+			if (!tankA.isAlive()) {
 				continue;
 			}
 			
-			for (int b = a + 1; b < spaceships.length; b++) {
-				Spaceship spaceshipB = spaceships[b];
-				if (!spaceshipB.isAlive()) {
+			for (int b = a + 1; b < tanks.length; b++) {
+				Tank tankB = tanks[b];
+				if (!tankB.isAlive()) {
 					continue;
 				}
 				
-				if (spaceshipA.isTouching(spaceshipB)) {
-					// Both are dead
-					spaceshipA.setAlive(false);
-					spaceshipB.setAlive(false);
-					
-					spaceshipDied(spaceshipA);
-					spaceshipDied(spaceshipB);
-					
-					givePoints(spaceshipA, spaceshipB);
-					givePoints(spaceshipB, spaceshipA);
-					
-					break; // Break to prevent a dead ship from colliding again
+				if (tankA.isTouching(tankB)) {
+					// Push
+					Vector2D positionDifference = tankA.position.difference(tankB.position);
+					double radiusSum = tankA.getRadius() + tankB.getRadius();
+					double overlap = radiusSum - positionDifference.length();
+					/*if (overlap > 0d) {
+						positionDifference.setLength(overlap / 2d);
+						tankA.position.add(positionDifference);
+						tankB.position.subtract(positionDifference);
+					}*/
+					overlap = Math.max(overlap, 1d);
+					positionDifference.setLength(overlap / 2d);
+					tankA.position.add(positionDifference);
+					tankB.position.subtract(positionDifference);
 				}
 			}
 		}
 	}
 	
-	private void collideBulletToSpaceship() {
+	private void collideBulletToTank() {
 		// Calculate spaceship-bullet collisions
-		for (Spaceship spaceship : spaceships) {
+		for (Tank spaceship : tanks) {
 			if (!spaceship.isAlive()) {
 				continue;
 			}
@@ -474,9 +459,9 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 					givePoints(bullet, spaceship);
 					
 					if (spaceship.isAlive()) {
-						requestSound("Hit");
+						requestSound("PwankE");
 					} else {
-						spaceshipDied(spaceship);
+						tankDied(spaceship);
 					}
 					
 					// Remove the bullet from the list
@@ -487,72 +472,8 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		}
 	}
 	
-	private void collideAsteroidToSpaceship() {
-		// Calculate spaceship-asteroid collisions
-		for (Spaceship spaceship : spaceships) {
-			if (!spaceship.isAlive()) {
-				continue;
-			}
-			
-			for (Asteroid asteroid : asteroids) {
-				if (spaceship.isTouchingWrapped(asteroid, getGameWidth(), getGameHeight())) {
-					// Spaceship is dead
-					spaceship.setAlive(false);
-					spaceshipDied(spaceship);
-					
-					takePoints(spaceship, spaceship, asteroid);
-					
-					break; // Break to prevent hitting multiple asteroids
-				}
-			}
-		}
-	}
-	
-	private void collideAsteroidToAsteroid() {
-		// Calculate asteroid-asteroid collisions
-		for (int a = 0; a < asteroids.size() - 1; a++) {
-			Asteroid asteroidA = asteroids.get(a);
-			for (int b = a + 1; b < asteroids.size(); b++) {
-				Asteroid asteroidB = asteroids.get(b);
-				if (asteroidA.isTouchingWrapped(asteroidB, getGameWidth(), getGameHeight())) {
-					// Asteroids bounce off each other
-					requestSound("Bump");
-					asteroidA.bounceWrapped(asteroidB, getGameWidth(), getGameHeight());
-				}
-			}
-		}
-	}
-	
-	private void collideBulletToAsteroid() {
-		// Calculate bullet-asteroid collisions
-		for (int a = 0; a < asteroids.size(); a++) {
-			Asteroid asteroid = asteroids.get(a);
-			for (int i = 0; i < bullets.size(); i++) {
-				Bullet bullet = bullets.get(i);
-				if (bullet.isTouchingWrapped(asteroid, getGameWidth(), getGameHeight())) {
-					// Bullet hits this asteroid
-					requestSound("Crack");
-					givePoints(bullet, asteroid);
-					
-					// Split the asteroid in two
-					Asteroid otherHalf = asteroid.split(bullet);
-					if (otherHalf != null) {
-						asteroids.add(otherHalf);
-					} else {
-						// The asteroid was destroyed, remove it from the list
-						asteroids.remove(a--);
-					}
-					
-					// Remove this bullet from the list
-					bullets.remove(i--);
-					break;
-				}
-			}
-		}
-	}
-	
-	private void spaceshipDied(Spaceship spaceship) {
-		fragments.addAll(spaceship.getFragments());
+	private void tankDied(Tank tank) {
+		fragments.addAll(tank.getFragments());
 		requestSound("Crash");
 	}
 	
@@ -620,12 +541,20 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	}
 	
 	public boolean isRoundOver() {
+		// State of the game
+		int numberOfLiving = 0;
+		boolean nobodyHasAmmo = true;
+		
 		for (int i = 0; i < players.length; i++) {
-			if (!spaceships[i].isAlive()) {
-				return true;
+			// The round is over if someone is dead
+			if (tanks[i].isAlive()) {
+				numberOfLiving++;
 			}
+			nobodyHasAmmo &= tanks[i].getAmmo() == 0;
 		}
-		return false;
+		
+		// Return true if one or none players are living, or stalemate
+		return numberOfLiving <= 1 || (nobodyHasAmmo && bullets.isEmpty());
 	}
 	
 	@Override
@@ -633,29 +562,23 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		// Scale by the delta time
 		extrapolate *= (isRoundOver() ? deltaTimeDead : deltaTimeAlive);
 		
-		// Clear the frame
-		g.setColor(Color.BLACK);
+		// Clear the frame (background colour)
+		g.setColor(new Color(0x006000));
 		g.fillRect(0, 0, getGameWidth(), getGameHeight());
 		
-		// Draw the asteroids
-		g.setColor(Color.GRAY);
-		for (Asteroid asteroid : asteroids) {
-			drawPhysicsObject(g, asteroid, extrapolate, true);
-		}
-		
-		// Draw the player spaceships
-		for (Spaceship spaceship : spaceships) {
-			if (!spaceship.isAlive()) {
-				continue;
-			}
-			g.setColor(getOwnerColor(spaceship));
-			drawPolygon(g, spaceship, extrapolate);
-		}
-		
-		// Draw the spaceship fragments
+		// Draw the tank fragments
 		for (Fragment fragment : fragments) {
 			g.setColor(getOwnerColor(fragment));
 			drawPolygon(g, fragment, extrapolate);
+		}
+		
+		// Draw the player tanks
+		for (Tank tank : tanks) {
+			if (!tank.isAlive()) {
+				continue;
+			}
+			g.setColor(getOwnerColor(tank));
+			drawPolygon(g, tank, extrapolate);
 		}
 		
 		// Draw the bullets
@@ -676,22 +599,44 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		for (int i = 0; i < players.length; i++) {
 			g.setColor(players[i].getColor());
 			
-			final int triangleWidth = 8, triangleHeight = 11, triangleSpacing = 15;
+			final int rectWidth = 8, rectHeight = 11, rectSpacing = 15;
 			
-			int yBase = i == 0 ? (getGameHeight() / 10 - 6) : (getGameHeight() * 9 / 10 + 6);
-			int yNose = yBase + (i == 0 ? triangleHeight : -triangleHeight);
-			int xFirst = i == 0 ? 50 : (getGameWidth() - (50 + triangleWidth) - 1);
-			int xPerHealth = i == 0 ? -triangleSpacing : triangleSpacing;
+			int yBack = i == 0 ? (getGameHeight() / 10 - 6) : (getGameHeight() * 9 / 10 + 6);
+			int yFront = yBack + (i == 0 ? rectHeight : -rectHeight);
+			int xFirst = i == 0 ? 50 : (getGameWidth() - (50 + rectWidth) - 1);
+			int xPerHealth = i == 0 ? -rectSpacing : rectSpacing;
 			
-			for (int h = 0; h < spaceships[i].getHealth(); h++) {
+			for (int h = 0; h < tanks[i].getHealth(); h++) {
 				int xHealth = xPerHealth * h;
 				Polygon triangle = new Polygon(
 						new int[] { xFirst + xHealth,
-								xFirst + triangleWidth / 2 + xHealth,
-								xFirst + triangleWidth + xHealth },
-						new int[] { yBase, yNose, yBase }, 3);
+								xFirst + xHealth,
+								xFirst + rectWidth + xHealth,
+								xFirst + rectWidth + xHealth },
+						new int[] { yBack, yFront, yFront, yBack }, 4);
 				// g.fillPolygon(triangle);
 				g.drawPolygon(triangle);
+			}
+			
+			// Draw a line connecting the tanks
+			if (DebugMode.isEnabled()) {
+				g.setColor(Color.BLUE);
+				g.drawLine((int) tanks[0].position.x, (int) tanks[0].position.y,
+						(int) tanks[1].position.x, (int) tanks[1].position.y);
+			}
+		}
+		
+		// Draw ammo markers
+		for (int i = 0; i < players.length; i++) {
+			g.setColor(players[i].getColor());
+			
+			int barWidth = 2 * tanks[i].getAmmo();
+			int barHeight = 6;
+			int xBar = i == 0 ? (59 - barWidth) : (getGameWidth() - 59);
+			int yBar = i == 0 ? 65 : (getGameHeight() - 65 - barHeight);
+			
+			for (int h = 0; h < tanks[i].getHealth(); h++) {
+				g.fillRect(xBar, yBar, barWidth, barHeight);
 			}
 		}
 		

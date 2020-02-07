@@ -2,15 +2,16 @@ package headtohead;
 
 import javax.swing.JFrame;
 
-import blasteroids.BlasteroidsGameCanvas;
+import tankbattle.TankBattleGameCanvas;
 
 public class HeadToHeadMain {
 	
 	public static void main(String[] args) {
-		JFrame frame = new JFrame("Head to Head v0.34");
+		JFrame frame = new JFrame("Head to Head v0.35");
 		
 		// HeadToHeadGameCanvas gameCanvas = new PongGameCanvas();
-		HeadToHeadGameCanvas gameCanvas = new BlasteroidsGameCanvas();
+		// HeadToHeadGameCanvas gameCanvas = new BlasteroidsGameCanvas();
+		HeadToHeadGameCanvas gameCanvas = new TankBattleGameCanvas();
 		frame.add(gameCanvas);
 		
 		frame.addKeyListener(gameCanvas);

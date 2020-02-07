@@ -24,6 +24,10 @@ import java.io.PrintStream;
 
 import javax.swing.Timer;
 
+import button.ArcadeButton;
+import button.IButton;
+import button.InputSource;
+import button.VirtualButton;
 import sound.SoundPlayer;
 
 public abstract class HeadToHeadGameCanvas extends Canvas
@@ -48,7 +52,7 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	private Thread gameLoopThread;
 	
 	// Demo mode
-	private /*final*/ int demoIdleTime = 60000; // Go to demo mode after 60s of inactivity
+	private int demoIdleTime = 60000; // Go to demo mode after 60s of inactivity
 	protected Timer demoTimer;
 	protected boolean demoMode = false;
 	
@@ -99,7 +103,7 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 				e.printStackTrace();
 			}
 			
-			demoIdleTime = 3000;
+			demoIdleTime = 10000;
 		}
 		
 		demoTimer = new Timer(demoIdleTime, this);

@@ -1,4 +1,4 @@
-package headtohead;
+package button;
 
 public class VirtualButton implements IButton {
 	

@@ -1,7 +1,9 @@
 package blasteroids;
 
 import geometry.Vector2D;
+import headtohead.IOwnable;
 import headtohead.Player;
+import physics.AgedPhysicsObject;
 
 public class ScoreMarker extends AgedPhysicsObject implements IOwnable {
 	

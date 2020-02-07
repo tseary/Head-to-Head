@@ -1,4 +1,4 @@
-package blasteroids;
+package physics;
 
 public abstract class AgedPhysicsObject extends PhysicsObject {
 	/** The object's age in physics seconds. */

@@ -3,7 +3,10 @@ package blasteroids;
 import java.awt.Polygon;
 
 import geometry.Vector2D;
+import headtohead.IOwnable;
 import headtohead.Player;
+import physics.IPolygon;
+import physics.RotatablePhysicsObject;
 
 public class Fragment extends RotatablePhysicsObject implements IOwnable, IPolygon {
 	
