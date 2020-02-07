@@ -50,29 +50,31 @@ public abstract class PhysicsObject {
 	 */
 	protected static void unwrapPositions(PhysicsObject objA, PhysicsObject objB, double width, double height) {
 		// Check if we need to unwrap in x
-		double xLowThreshold = 0.25d * width;
-		double xHighThreshold = 0.75d * width;
-		boolean wrapObjBX = objA.position.x < xLowThreshold && objB.position.x > xHighThreshold,
-				wrapObjAX = objB.position.x < xLowThreshold && objA.position.x > xHighThreshold;
+		double xDistance = objA.position.x - objB.position.x;	// positive if A is on the right
+		boolean unwrapX = Math.abs(xDistance) > 0.5d * width;
 		
 		// Unwrap the objects in x
-		if (wrapObjBX) {
-			objB.position.x -= width;
-		} else if (wrapObjAX) {
-			objA.position.x -= width;
+		if (unwrapX) {
+			boolean unwrapAX = xDistance > 0;
+			if (unwrapAX) {
+				objA.position.x -= width;
+			} else {
+				objB.position.x -= width;
+			}
 		}
 		
 		// Check if we need to unwrap in y
-		double yLowThreshold = 0.25d * height;
-		double yHighThreshold = 0.75d * height;
-		boolean wrapObjBY = objA.position.y < yLowThreshold && objB.position.y > yHighThreshold,
-				wrapObjAY = objB.position.y < yLowThreshold && objA.position.y > yHighThreshold;
+		double yDistance = objA.position.y - objB.position.y;
+		boolean unwrapY = Math.abs(yDistance) > 0.5d * height;
 		
 		// Unwrap the objects in y
-		if (wrapObjBY) {
-			objB.position.y -= height;
-		} else if (wrapObjAY) {
-			objA.position.y -= height;
+		if (unwrapY) {
+			boolean unwrapAY = yDistance > 0;
+			if (unwrapAY) {
+				objA.position.y -= height;
+			} else {
+				objB.position.y -= height;
+			}
 		}
 	}
 	
