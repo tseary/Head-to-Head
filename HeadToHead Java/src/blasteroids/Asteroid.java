@@ -11,8 +11,19 @@ public class Asteroid extends PhysicsObject implements IScorable {
 	private final static double splitSeparateSpeed = 10d;
 	private final static double bulletRelativeMass = 0.1d;
 	
-	private final static double[] radii = new double[] { 5.5d, 11d, 22d, 44d, 88d };
-	private final static int[] scores = new int[] { 225, 150, 100, 66, 44 };
+	private static final int SIZES = 5;
+	
+	private final static double[] radii = new double[SIZES];
+	private final static double[] masses = new double[SIZES];
+	private final static int[] scores = new int[SIZES];
+	
+	static {
+		for (int i = 0; i < SIZES; i++) {
+			radii[i] = 5.5d * Math.pow(2d, i);
+			masses[i] = Math.pow(radii[i], 2d);
+			scores[i] = (int)(100 * Math.pow(1.5d, 2 - i));
+		}
+	}
 	
 	public Asteroid() {
 		this(2);
@@ -22,7 +33,7 @@ public class Asteroid extends PhysicsObject implements IScorable {
 		if (size < 0) {
 			throw new IllegalArgumentException("Asteroid size must be non-negative.");
 		}
-		this.size = size;
+		this.size = Math.min(size, SIZES - 1);
 	}
 	
 	/**
@@ -39,47 +50,47 @@ public class Asteroid extends PhysicsObject implements IScorable {
 		return clone;
 	}
 	
-	// TODO Rename asteroidB
-	public void bounceWrapped(PhysicsObject asteroidB, double width, double height) {
+	// TODO Turn this into a function in PhysicsObject
+	public void bounceWrapped(PhysicsObject object2, double width, double height) {
 		// Unwrap
-		unwrapPositions(this, asteroidB, width, height);
+		unwrapPositions(this, object2, width, height);
 		
-		// Push the asteroids away from each other to prevent tangling
-		double radiusSum = this.getRadius() + asteroidB.getRadius();
-		Vector2D relativePosition = this.position.difference(asteroidB.position);
+		// Push the objects away from each other to prevent tangling
+		double radiusSum = this.getRadius() + object2.getRadius();
+		Vector2D relativePosition = this.position.difference(object2.position);
 		double overlap = radiusSum - relativePosition.length();
 		if (overlap > 0d) {
 			relativePosition.setLength(0.5d * overlap);
 			this.position.add(relativePosition);
-			asteroidB.position.subtract(relativePosition);
+			object2.position.subtract(relativePosition);
 		}
 		
 		// Do elastic collision
 		// TODO Make this more efficient
-		Vector2D ast1VelocityFinal = getVelocity1Final(this, asteroidB);
-		Vector2D ast2VelocityFinal = getVelocity1Final(asteroidB, this);
+		Vector2D obj1VelocityFinal = getVelocity1Final(this, object2);
+		Vector2D obj2VelocityFinal = getVelocity1Final(object2, this);
 		
-		this.velocity = ast1VelocityFinal;
-		asteroidB.velocity = ast2VelocityFinal;
+		this.velocity = obj1VelocityFinal;
+		object2.velocity = obj2VelocityFinal;
 		
 		// Undo the effect of wrapping
 		this.wrapPosition(width, height);
-		asteroidB.wrapPosition(width, height);
+		object2.wrapPosition(width, height);
 	}
 	
 	// TODO Turn this into a function in PhysicsObject
-	private static Vector2D getVelocity1Final(PhysicsObject ast1, PhysicsObject ast2) {
-		double mass1 = Math.pow(ast1.getRadius(), 2d),
-				mass2 = Math.pow(ast2.getRadius(), 2d);
+	private static Vector2D getVelocity1Final(PhysicsObject obj1, PhysicsObject obj2) {
+		double mass1 = obj1.getMass(),
+				mass2 = obj2.getMass();
 		
 		double massTerm = 2d * mass2 / (mass1 + mass2);
 		
-		Vector2D position2Minus1 = ast1.position.difference(ast2.position);
+		Vector2D position2Minus1 = obj1.position.difference(obj2.position);
 		
-		double numerator = ast1.velocity.difference(ast2.velocity).dotProduct(position2Minus1);
+		double numerator = obj1.velocity.difference(obj2.velocity).dotProduct(position2Minus1);
 		double denominator = position2Minus1.lengthSquared();
 		
-		return ast1.velocity.difference(position2Minus1.scalarProduct(massTerm * numerator / denominator));
+		return obj1.velocity.difference(position2Minus1.scalarProduct(massTerm * numerator / denominator));
 	}
 	
 	public Asteroid split(Bullet bullet) {
@@ -116,17 +127,16 @@ public class Asteroid extends PhysicsObject implements IScorable {
 	
 	@Override
 	public double getRadius() {
-		if (size < radii.length) {
-			return radii[size];
-		}
-		return 5.5d * Math.pow(2d, size);
+		return radii[size];
+	}
+	
+	@Override
+	public double getMass() {
+		return masses[size];
 	}
 	
 	@Override
 	public int getScore() {
-		if (size < scores.length) {
-			return scores[size];
-		}
-		return (int)(100 * Math.pow(1.5d, 2 - size));
+		return scores[size];
 	}
 }

@@ -14,6 +14,7 @@ public class Spaceship extends RotatablePhysicsObject implements IOwnable, IPoly
 	private Player owner;
 	
 	static final double bulletSpeed = 50d;
+	static final double spaceshipMass = 100d;
 	
 	// private boolean alive = true;
 	private static final int fullHealth = 3;
@@ -150,7 +151,8 @@ public class Spaceship extends RotatablePhysicsObject implements IOwnable, IPoly
 					this.position,
 					shipOutlineMidpoints[i],
 					shipOutline[i],
-					shipOutlineMidpoints[i > 0 ? i - 1 : ((shipOutlineMidpoints.length - 1) % shipOutlineMidpoints.length)] },
+					shipOutlineMidpoints[i > 0
+							? i - 1 : ((shipOutlineMidpoints.length - 1) % shipOutlineMidpoints.length)] },
 					this.owner);
 			
 			fragment.velocity = this.velocity.sum(
@@ -170,12 +172,17 @@ public class Spaceship extends RotatablePhysicsObject implements IOwnable, IPoly
 	}
 	
 	@Override
+	public double getMass() {
+		return spaceshipMass;
+	}
+	
+	@Override
 	public Player getOwner() {
 		return owner;
 	}
 	
 	@Override
 	public int getScore() {
-		return (int) (10d * velocity.length());
+		return (int)(10d * velocity.length());
 	}
 }

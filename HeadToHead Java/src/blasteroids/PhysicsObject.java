@@ -103,4 +103,8 @@ public abstract class PhysicsObject {
 	public double distanceSquaredTo(PhysicsObject obj) {
 		return this.position.difference(obj.position).lengthSquared();
 	}
+	
+	public double getMass() {
+		return 1d;
+	}
 }
