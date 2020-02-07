@@ -39,8 +39,8 @@ public class Asteroid extends PhysicsObject implements IScorable {
 		return clone;
 	}
 	
-	// TODO Make this work with wrapping
-	public void bounceWrapped(Asteroid asteroidB, double width, double height) {
+	// TODO Rename asteroidB
+	public void bounceWrapped(PhysicsObject asteroidB, double width, double height) {
 		// Unwrap
 		unwrapPositions(this, asteroidB, width, height);
 		
@@ -127,6 +127,6 @@ public class Asteroid extends PhysicsObject implements IScorable {
 		if (size < scores.length) {
 			return scores[size];
 		}
-		return (int) (100 * Math.pow(1.5d, 2 - size));
+		return (int)(100 * Math.pow(1.5d, 2 - size));
 	}
 }

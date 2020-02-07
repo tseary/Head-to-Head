@@ -44,8 +44,8 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	// Game timing
 	private static final int roundStartTicks = gameTimerFPS;
 	private int roundStartCounter;
-	private static final int roundOverTicks = (int) (1d * gameTimerFPS);
-	private static final int gameOverTicks = roundOverTicks + (int) (2.5d * gameTimerFPS);
+	private static final int roundOverTicks = (int)(1d * gameTimerFPS);
+	private static final int gameOverTicks = roundOverTicks + (int)(2.5d * gameTimerFPS);
 	private static final int roundsPerGame = 3;
 	private int roundOverCounter;
 	private int round;
@@ -169,7 +169,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 			
 			Asteroid asteroid = new Asteroid(bigOne ? 3 : 2);
 			asteroid.position.x = random.nextInt(getGameWidth());
-			asteroid.position.y = (int) Math.round(getGameHeight() *
+			asteroid.position.y = (int)Math.round(getGameHeight() *
 					(random.nextDouble() * yRange + yOffset));
 			
 			asteroid.velocity = new Vector2D(random.nextDouble() *
@@ -315,13 +315,14 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		// Read buttons, set spaceship thrusts
 		for (int i = 0; i < players.length; i++) {
 			Player player = players[i];
+			Spaceship spaceship = spaceships[i];
 			
 			// Apply drag always
-			spaceships[i].acceleration = spaceships[i].velocity
+			spaceship.acceleration = spaceship.velocity
 					.scalarProduct(-spaceshipDrag);
 			
 			// Skip if dead
-			if (!spaceships[i].isAlive()) {
+			if (!spaceship.isAlive()) {
 				continue;
 			}
 			
@@ -329,16 +330,16 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 			boolean shootPressed = player.getButton(BUTTON_SHOOT).isPressed();
 			boolean thrustOn = shootPressed && shootWasPressed[i];
 			if (thrustOn) {
-				spaceships[i].acceleration.add(
-						new Vector2D(spaceshipThrust, spaceships[i].angle, true));
+				spaceship.acceleration.add(
+						new Vector2D(spaceshipThrust, spaceship.angle, true));
 			}
 			shootWasPressed[i] = shootPressed;
 			
 			// Turn
 			if (player.getButton(BUTTON_LEFT).isPressed()) {
-				spaceships[i].angle -= Math.PI / stepsPerHalfTurn;
+				spaceship.angle -= Math.PI / stepsPerHalfTurn;
 			} else if (player.getButton(BUTTON_RIGHT).isPressed()) {
-				spaceships[i].angle += Math.PI / stepsPerHalfTurn;
+				spaceship.angle += Math.PI / stepsPerHalfTurn;
 			}
 		}
 	}
@@ -493,11 +494,24 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 			
 			for (Asteroid asteroid : asteroids) {
 				if (spaceship.isTouchingWrapped(asteroid, getGameWidth(), getGameHeight())) {
-					// Spaceship is dead
-					spaceship.setAlive(false);
-					spaceshipDied(spaceship);
+					// Bounce off the asteroid and lose a life
+					// No points are awarded
 					
-					takePoints(spaceship, spaceship, asteroid);
+					// Ship and asteroid bounce off each other
+					requestSound("Bump");
+					asteroid.bounceWrapped(spaceship, getGameWidth(), getGameHeight());
+					
+					// TODO Apply random angular velocity
+					// spaceship.angularVelocity += 1d;
+					
+					// Ship gets hurt
+					spaceship.takeHit();
+					
+					if (spaceship.isAlive()) {
+						requestSound("Bump");
+					} else {
+						spaceshipDied(spaceship);
+					}
 					
 					break; // Break to prevent hitting multiple asteroids
 				}
@@ -574,7 +588,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		
 		// Create a score marker if the object is physical
 		if (scoreObj instanceof PhysicsObject) {
-			PhysicsObject physicsObj = (PhysicsObject) scoreObj;
+			PhysicsObject physicsObj = (PhysicsObject)scoreObj;
 			scoreMarkers.add(new ScoreMarker(String.valueOf(score),
 					physicsObj.position, owner, isPlayerInverted(owner)));
 		}
@@ -699,7 +713,8 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 			drawTextMarker(g, "DEMO", yLine1);
 			drawTextMarker(g, "PRESS ANY BUTTON TO START", yLine2);
 		} else if (roundStartCounter < roundStartTicks) {
-			String startString = round > roundsPerGame ? "OVERTIME"
+			String startString = round > roundsPerGame
+					? "OVERTIME"
 					: String.format("ROUND %d OF %d", round, roundsPerGame);
 			drawTextMarker(g, startString, yLine1);
 		} else if (roundOverCounter > 0 && roundOverCounter <= roundOverTicks) {
@@ -744,9 +759,9 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		
 		Vector2D drawPosition = IPolygon.extrapolatePosition(obj, extrapolateTime);
 		
-		int radius = Math.max(1, (int) obj.getRadius());
-		int xDraw = (int) drawPosition.x - radius;
-		int yDraw = (int) drawPosition.y - radius;
+		int radius = Math.max(1, (int)obj.getRadius());
+		int xDraw = (int)drawPosition.x - radius;
+		int yDraw = (int)drawPosition.y - radius;
 		int diameter = 2 * radius;
 		
 		g.fillOval(xDraw, yDraw, diameter, diameter);
@@ -842,12 +857,12 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		// Center the text
 		int xOffset = g.getFontMetrics().stringWidth(scoreMarker.value) / 2,
 				yOffset = 5;
-		int xDraw = (int) (scoreMarker.position.x + (scoreMarker.isInverted() ? xOffset : -xOffset)),
-				yDraw = (int) (scoreMarker.position.y - (scoreMarker.isInverted() ? yOffset : -yOffset));
+		int xDraw = (int)(scoreMarker.position.x + (scoreMarker.isInverted() ? xOffset : -xOffset)),
+				yDraw = (int)(scoreMarker.position.y - (scoreMarker.isInverted() ? yOffset : -yOffset));
 		
 		// Draw inverted or not
 		if (scoreMarker.isInverted()) {
-			Graphics2D g2d = (Graphics2D) g;
+			Graphics2D g2d = (Graphics2D)g;
 			g2d.rotate(Math.PI);
 			g.drawString(scoreMarker.value, -xDraw, -yDraw);
 			g2d.rotate(-Math.PI);
