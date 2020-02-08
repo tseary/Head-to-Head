@@ -60,6 +60,8 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	protected boolean soundOn = true;
 	protected Set<String> soundRequests;
 	
+	private int starsRandomSeed = 0;
+	
 	// Score/text
 	private static final double scoreMarkerMaxAge = 0.5d;
 	/** Ephemeral markers that show points as they are earned. */
@@ -123,6 +125,8 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		
 		gameOverSoundPlayed = false;
 		
+		starsRandomSeed = new Random().nextInt();
+		
 		// Reset player scores
 		for (Player player : players) {
 			setPlayerScore(player, 0);
@@ -137,7 +141,6 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		deltaTimeAlive = getPhysicsTickMillis() / 1000d;
 		deltaTimeDead = deltaTimeAlive / 4d;
 		startGameLoop();
-		
 	}
 	
 	@Override
@@ -665,6 +668,16 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		// Clear the frame
 		g.setColor(Color.BLACK);
 		g.fillRect(0, 0, getGameWidth(), getGameHeight());
+		
+		// It's full of stars
+		Random random = new Random(starsRandomSeed);
+		g.setColor(Color.GRAY);
+		for (int i = 0; i < 100; i++) {
+			g.setColor(random.nextBoolean() ? Color.GRAY : Color.CYAN.darker());
+			int starSize = random.nextBoolean() ? 1 : 2;
+			g.fillRect(random.nextInt(getGameWidth()),
+					random.nextInt(getGameHeight()), starSize, starSize);
+		}
 		
 		// Draw the asteroids
 		g.setColor(Color.GRAY);
