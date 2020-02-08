@@ -9,8 +9,12 @@ import java.util.List;
 public class GameSelectionCanvas extends HeadToHeadGameCanvas {
 	private static final long serialVersionUID = 1L;
 	
+	// Thumbnails
 	private List<Image> gameThumbs;
 	private List<Color> borderColors;
+	
+	// The chosen game
+	private int selectedGameIndex = -1;
 	
 	public GameSelectionCanvas() {
 		super(400);
@@ -41,20 +45,30 @@ public class GameSelectionCanvas extends HeadToHeadGameCanvas {
 	
 	@Override
 	public long getPhysicsTickMillis() {
-		return 1000;
+		return 1000 / 60;
 	}
 	
 	@Override
 	protected void physicsTick() {
-		// TODO Auto-generated method stub
+		// Read buttons, select game
+		// TODO Change to left/right enter to support > 3 games.
+		// TODO Require player consensus
+		for (int g = 0; g < gameThumbs.size() && selectedGameIndex < 0; g++) {
+			for (Player player : players) {
+				if (player.getButton(g).isPressed()) {
+					selectedGameIndex = g;
+					break;
+				}
+			}
+		}
 		
+		if (selectedGameIndex >= 0) {
+			stopGameLoop();
+		}
 	}
 	
 	@Override
 	protected void drawVideoFrame(Graphics g, double extrapolate) {
-		System.out.println("GameSelectionCanvas.drawVideoFrame()");
-		System.out.println("gameThumbs.size() = " + gameThumbs.size());
-		
 		// Clear background
 		g.setColor(new Color(0x008080));
 		g.fillRect(0, 0, getGameWidth(), getGameHeight());

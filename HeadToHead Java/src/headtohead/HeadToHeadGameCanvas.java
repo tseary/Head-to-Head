@@ -46,6 +46,7 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	// Game loop
 	private GameLoop gameLoopRunnable;
 	private Thread gameLoopThread;
+	private Thread waitingThread = null;
 	
 	// Demo mode
 	private final int demoIdleTime = 60000; // Go to demo mode after 60s of inactivity
@@ -100,9 +101,11 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 			}
 		}
 		
+		// Demo mode
 		demoTimer = new Timer(demoIdleTime, this);
 		demoTimer.setActionCommand("DemoMode");
 		
+		// Sound
 		sound = new SoundPlayer();
 	}
 	
@@ -179,6 +182,12 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 		if (gameLoopThread != null && gameLoopThread.isAlive()) {
 			gameLoopThread.interrupt();
 			gameLoopThread = null;
+		}
+	}
+	
+	public void joinGameLoopThread() throws InterruptedException {
+		if (gameLoopThread != null) {
+			gameLoopThread.join();
 		}
 	}
 	
