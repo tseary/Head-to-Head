@@ -17,6 +17,7 @@ public class SoundPlayer {
 		
 		// TODO Make sound keys game-specific
 		soundURLs.put("Pew", SoundPlayer.class.getResource("/soundfx/pew150ms.wav"));
+		soundURLs.put("Bounce", SoundPlayer.class.getResource("/soundfx/bounce.wav"));
 		soundURLs.put("Bump", SoundPlayer.class.getResource("/soundfx/bump.wav"));
 		soundURLs.put("Crack", SoundPlayer.class.getResource("/soundfx/crack.wav"));
 		soundURLs.put("Crash", SoundPlayer.class.getResource("/soundfx/crash.wav"));

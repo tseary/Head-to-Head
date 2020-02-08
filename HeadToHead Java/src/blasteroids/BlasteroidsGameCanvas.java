@@ -526,7 +526,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 					spaceship.takeHit();
 					
 					if (spaceship.isAlive()) {
-						requestSound("Bump");
+						requestSound("Bounce");
 					} else {
 						spaceshipDied(spaceship);
 					}
