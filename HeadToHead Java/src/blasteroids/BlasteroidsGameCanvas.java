@@ -116,6 +116,9 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	public void newGame() {
 		// Reset the objects for a new round
 		round = 0;
+		for (int i = 0; i < spaceships.length; i++) {
+			spaceships[i] = null;
+		}
 		newRound();
 		
 		gameOverSoundPlayed = false;
@@ -140,18 +143,19 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	@Override
 	public void newRound() {
 		// Create player ships
-		if (players.length >= 1) {
-			Spaceship player0Spaceship = new Spaceship(0.25d * 2d * Math.PI, players[0]);
-			player0Spaceship.position.x = getGameWidth() / 2;
-			player0Spaceship.position.y = getGameHeight() / 10;
-			spaceships[0] = player0Spaceship;
-		}
-		
-		if (players.length >= 2) {
-			Spaceship player1Spaceship = new Spaceship(0.75d * 2d * Math.PI, players[1]);
-			player1Spaceship.position.x = getGameWidth() / 2;
-			player1Spaceship.position.y = getGameHeight() * 9 / 10;
-			spaceships[1] = player1Spaceship;
+		for (int i = 0; i < players.length; i++) {
+			Spaceship spaceship = spaceships[i];
+			
+			if (spaceship != null && spaceship.isAlive()) {
+				// Refill health
+				spaceship.setAlive(true);
+			} else {
+				// Make new ship
+				spaceship = new Spaceship((0.25d + 0.5d * i) * 2d * Math.PI, players[i]);
+				spaceship.position.x = getGameWidth() / 2;
+				spaceship.position.y = getGameHeight() * (1 + 8 * i) / 10;
+				spaceships[i] = spaceship;
+			}
 		}
 		
 		// Reset shot counters
@@ -168,9 +172,23 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 			boolean bigOne = random.nextDouble() < 0.1d;
 			
 			Asteroid asteroid = new Asteroid(bigOne ? 3 : 2);
-			asteroid.position.x = random.nextInt(getGameWidth());
-			asteroid.position.y = (int)Math.round(getGameHeight() *
-					(random.nextDouble() * yRange + yOffset));
+			
+			boolean validPosition;
+			do {
+				asteroid.position.x = random.nextInt(getGameWidth());
+				asteroid.position.y = random.nextInt(getGameHeight());
+				/*asteroid.position.y = (int)Math.round(getGameHeight() *
+						(random.nextDouble() * yRange + yOffset));*/
+				
+				// Test the position and reroll if it's invalid
+				final double minRadiusSqr = Math.pow(0.25d * getGameHeight(), 2d);
+				validPosition = true;
+				for (int p = 0; p < spaceships.length; p++) {
+					if (asteroid.distanceSquaredTo(spaceships[p]) > minRadiusSqr) continue;
+					validPosition = false;
+					break;
+				}
+			} while (!validPosition);
 			
 			asteroid.velocity = new Vector2D(random.nextDouble() *
 					(asteroidMaxSpeed - asteroidMinSpeed) + asteroidMinSpeed,
