@@ -60,7 +60,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	protected boolean soundOn = true;
 	protected Set<String> soundRequests;
 	
-	private int starsRandomSeed = 0;
+	private long starsRandomSeed = 0;
 	
 	// Score/text
 	private static final double scoreMarkerMaxAge = 0.5d;
@@ -125,7 +125,8 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		
 		gameOverSoundPlayed = false;
 		
-		starsRandomSeed = new Random().nextInt();
+		// Randomize the stars
+		starsRandomSeed = System.currentTimeMillis();
 		
 		// Reset player scores
 		for (Player player : players) {
@@ -170,7 +171,6 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		// Create asteroids
 		asteroids.clear();
 		Random random = new Random();
-		double yOffset = 0.30d, yRange = 1d - 2d * yOffset; // Vertical position
 		for (int i = 0; i < 3 + round; i++) {
 			boolean bigOne = random.nextDouble() < 0.1d;
 			
@@ -180,8 +180,6 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 			do {
 				asteroid.position.x = random.nextInt(getGameWidth());
 				asteroid.position.y = random.nextInt(getGameHeight());
-				/*asteroid.position.y = (int)Math.round(getGameHeight() *
-						(random.nextDouble() * yRange + yOffset));*/
 				
 				// Test the position and reroll if it's invalid
 				final double minRadiusSqr = Math.pow(0.25d * getGameHeight(), 2d);
@@ -615,6 +613,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private void takePoints(IOwnable playerObj, IScorable scoreObj, PhysicsObject physicsObj) {
 		Player owner = playerObj.getOwner();
 		if (owner == null) {
@@ -671,9 +670,10 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		
 		// It's full of stars
 		Random random = new Random(starsRandomSeed);
-		g.setColor(Color.GRAY);
-		for (int i = 0; i < 100; i++) {
-			g.setColor(random.nextBoolean() ? Color.GRAY : Color.CYAN.darker());
+		final Color color1 = Color.GRAY,
+				color2 = Color.CYAN.darker();
+		for (int i = 0; i < 80; i++) {
+			g.setColor(random.nextBoolean() ? color1 : color2);
 			int starSize = random.nextBoolean() ? 1 : 2;
 			g.fillRect(random.nextInt(getGameWidth()),
 					random.nextInt(getGameHeight()), starSize, starSize);
