@@ -70,7 +70,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	protected List<ScoreMarker> playerScoreMarkers;
 	
 	public BlasteroidsGameCanvas() {
-		super(400, gameTimerFPS);
+		super(400);
 		
 		// Create lists
 		spaceships = new Spaceship[players.length];

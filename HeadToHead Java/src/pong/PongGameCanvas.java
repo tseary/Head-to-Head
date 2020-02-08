@@ -26,7 +26,7 @@ public class PongGameCanvas extends HeadToHeadGameCanvas {
 	boolean ballOnPaddle = false;
 	
 	public PongGameCanvas() {
-		super(160, 30);
+		super(160);
 		
 		// Create the paddles
 		paddles = new Paddle[2];
@@ -118,8 +118,7 @@ public class PongGameCanvas extends HeadToHeadGameCanvas {
 				// Set ball x speed
 				boolean leftPressed = players[server].getButton(0).isPressed(),
 						rightPressed = players[server].getButton(2).isPressed();
-				vxBall = (leftPressed ? -paddleSpeed : 0)
-						+ (rightPressed ? paddleSpeed : 0);
+				vxBall = (leftPressed ? -paddleSpeed : 0) + (rightPressed ? paddleSpeed : 0);
 				
 				// Set ball y speed
 				int direction = server == 0 ? 1 : -1;
@@ -157,7 +156,7 @@ public class PongGameCanvas extends HeadToHeadGameCanvas {
 				
 				// Randomly change x speed
 				// TODO Apply spin if paddle is moving
-				vxBall += (int) System.currentTimeMillis() % 3 - 1;
+				vxBall += (int)System.currentTimeMillis() % 3 - 1;
 			} else if (yBall < paddles[0].y + paddles[0].h) {
 				// Doomed
 			}
@@ -176,15 +175,14 @@ public class PongGameCanvas extends HeadToHeadGameCanvas {
 			
 		} else if (yBall + ballSize >= paddles[1].y) {
 			// Ball might be touching bottom paddle
-			if (xBall + ballSize >= paddles[1].x
-					&& xBall <= paddles[1].x + paddles[1].w) {
+			if (xBall + ballSize >= paddles[1].x && xBall <= paddles[1].x + paddles[1].w) {
 				// Bounce off bottom paddle
 				// TODO Make corner-to-corner bounce reverse vxBall
 				yBall = paddles[1].y - ballSize;
 				vyBall = -Math.abs(vyBall);
 				
 				// Randomly change x speed
-				vxBall += (int) System.currentTimeMillis() % 3 - 1;
+				vxBall += (int)System.currentTimeMillis() % 3 - 1;
 			}
 		}
 		

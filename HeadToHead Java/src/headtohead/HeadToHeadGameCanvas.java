@@ -55,10 +55,10 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	// Sound
 	protected SoundPlayer sound;
 	
-	public HeadToHeadGameCanvas(int newGameWidth, int gameTimerFPS) {
+	public HeadToHeadGameCanvas(int newGameWidth) {
 		// Calculate the size of the video
 		gameWidth = newGameWidth;
-		gameHeight = (int) (gameWidth * aspectRatio);
+		gameHeight = (int)(gameWidth * aspectRatio);
 		initializeVideoScale();
 		
 		// Set up the panel
@@ -119,8 +119,8 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	private void initializeVideoScale() {
 		// Get the screen size
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		videoScale = Math.min((int) screenSize.getWidth() / gameWidth,
-				(int) screenSize.getHeight() / gameHeight);
+		videoScale = Math.min((int)screenSize.getWidth() / gameWidth,
+				(int)screenSize.getHeight() / gameHeight);
 		videoScale = Math.max(videoScale, 1);
 		
 		// Set the video size
@@ -250,6 +250,11 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 		}
 	}
 	
+	/**
+	 * Gets the amount of time represented by one call to physicsTick().
+	 * Must return a positive number.
+	 * @return
+	 */
 	abstract public long getPhysicsTickMillis();
 	
 	abstract protected void physicsTick();

@@ -22,6 +22,7 @@ public class GameLoop implements Runnable {
 	@Override
 	public void run() {
 		final long PHYSICS_TICK_MILLIS = game.getPhysicsTickMillis();
+		assert PHYSICS_TICK_MILLIS > 0;
 		
 		long previous = System.currentTimeMillis();
 		long lagMillis = 0;
@@ -43,7 +44,7 @@ public class GameLoop implements Runnable {
 				lagMillis -= PHYSICS_TICK_MILLIS;
 			}
 			
-			game.render(lagMillis / (double) PHYSICS_TICK_MILLIS);
+			game.render(lagMillis / (double)PHYSICS_TICK_MILLIS);
 			
 			// Calculate the average frame rate
 			/*if (DebugMode.isEnabled()) {
