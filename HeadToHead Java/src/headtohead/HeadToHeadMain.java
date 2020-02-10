@@ -2,10 +2,9 @@ package headtohead;
 
 import java.awt.Canvas;
 import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.image.BufferedImage;
-import java.util.Random;
+import java.io.IOException;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
 import blasteroids.BlasteroidsGameCanvas;
@@ -76,20 +75,18 @@ public class HeadToHeadMain {
 	}
 	
 	private static GameSelectionCanvas createGameSelectionCanvas() {
-		GameSelectionCanvas selectionCanvas = new GameSelectionCanvas();
+		GameSelectionCanvas gameSelector = new GameSelectionCanvas();
 		
-		// Add game thumbnails
-		Random random = new Random(0);
-		for (int i = 0; i < 3; i++) {
-			BufferedImage thumb = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
-			Graphics g = thumb.createGraphics();
-			g.setColor(new Color(random.nextInt()));
-			g.fillOval(0, 0, 99, 99);
-			g.drawOval(0, 0, 99, 99);
-			selectionCanvas.addThumbnail(thumb, new Color(random.nextInt()));
+		try {
+			gameSelector.addThumbnail(
+					ImageIO.read(HeadToHeadMain.class.getResource("/thumbs/pong.png")), Color.YELLOW);
+			gameSelector.addThumbnail(
+					ImageIO.read(HeadToHeadMain.class.getResource("/thumbs/blasteroids.png")), Color.DARK_GRAY);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		
-		return selectionCanvas;
+		return gameSelector;
 	}
 	
 	private static void initializeFrame(JFrame frame) {
