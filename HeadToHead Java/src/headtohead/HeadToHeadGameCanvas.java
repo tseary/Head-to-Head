@@ -165,8 +165,9 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	
 	/**
 	 * Starts the game loop Runnable in a new thread.
+	 * @throws InterruptedException
 	 */
-	public void startGameLoop() {
+	public void startGameLoop() throws InterruptedException {
 		stopGameLoop();
 		
 		// Start a new thread
@@ -175,9 +176,10 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	}
 	
 	/**
-	 * Blocks until the game loop thread dies.
+	 * Interrupts the game loop thread and blocks until it dies.
+	 * @throws InterruptedException
 	 */
-	public void stopGameLoop() {
+	public void stopGameLoop() throws InterruptedException {
 		// Stop the old thread if there is one
 		if (gameLoopThread != null && gameLoopThread.isAlive()) {
 			gameLoopThread.interrupt();
@@ -185,9 +187,15 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 		}
 	}
 	
+	/**
+	 * Blocks until the game loop thread dies.
+	 * @throws InterruptedException
+	 */
 	public void joinGameLoopThread() throws InterruptedException {
-		if (gameLoopThread != null) {
+		// Join the game loop and null the thread when it dies
+		if (gameLoopThread != null && gameLoopThread.isAlive()) {
 			gameLoopThread.join();
+			gameLoopThread = null;
 		}
 	}
 	
@@ -233,7 +241,8 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	}
 	
 	/**
-	 * Reset all the game objects, then start the game loop.
+	 * Reset all the game objects.
+	 * This function should NOT call startGameLoop().
 	 */
 	abstract public void newGame();
 	
@@ -252,10 +261,14 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	}
 	
 	public void togglePause() {
-		if (gameLoopThread != null && gameLoopThread.isAlive()) {
-			stopGameLoop();
-		} else {
-			startGameLoop();
+		try {
+			if (gameLoopThread != null && gameLoopThread.isAlive()) {
+				stopGameLoop();
+			} else {
+				startGameLoop();
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -266,6 +279,10 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	 */
 	abstract public long getPhysicsTickMillis();
 	
+	/**
+	 * Execute one cycle of the game physics.
+	 * This function should call stopGameLoop() when the game ends.
+	 */
 	abstract protected void physicsTick();
 	
 	abstract protected void drawVideoFrame(Graphics g, double extrapolate);

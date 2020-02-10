@@ -141,7 +141,6 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		// Start the game timer
 		deltaTimeAlive = getPhysicsTickMillis() / 1000d;
 		deltaTimeDead = deltaTimeAlive / 4d;
-		startGameLoop();
 	}
 	
 	@Override
@@ -313,7 +312,11 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 			if (finalRound) {
 				if (roundOverCounter >= gameOverTicks) {
 					// Game over time has elapsed
-					newGame();
+					try {
+						stopGameLoop();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 					return true;
 				}
 				

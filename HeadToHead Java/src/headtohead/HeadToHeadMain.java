@@ -9,6 +9,7 @@ import java.util.Random;
 import javax.swing.JFrame;
 
 import blasteroids.BlasteroidsGameCanvas;
+import pong.PongGameCanvas;
 
 public class HeadToHeadMain {
 	
@@ -16,50 +17,62 @@ public class HeadToHeadMain {
 		JFrame frame = new JFrame("Head to Head v0.36");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		GameSelectionCanvas selectionCanvas = createGameSelectionCanvas();
-		addGameCanvas(frame, selectionCanvas);
+		GameSelectionCanvas gameSelector = createGameSelectionCanvas();
+		
+		addGameCanvas(frame, gameSelector);
 		initializeFrame(frame);
-		doubleBuffer(selectionCanvas);
+		doubleBuffer(gameSelector);
 		
-		System.out.println("Starting game selection");
-		selectionCanvas.newGame();
+		gameSelector.newGame();
 		
-		//
-		//
-		//
-		
-		System.out.println("Waiting...");
+		// Wait for the user to select a game
 		try {
-			selectionCanvas.joinGameLoopThread();
+			gameSelector.startGameLoop();
+			gameSelector.joinGameLoopThread();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		System.out.println("Done waiting.");
 		
-		removeGameCanvas(frame, selectionCanvas);
+		removeGameCanvas(frame, gameSelector);
 		
-		//
-		//
-		//
+		// Create an instance of the selected game
+		HeadToHeadGameCanvas gameCanvas;
+		switch (gameSelector.getSelectedIndex()) {
+			case 0:	// Pong
+				gameCanvas = new PongGameCanvas();
+				break;
+			default:
+			case 1:	// Blasteroids
+				gameCanvas = new BlasteroidsGameCanvas();
+				break;
+			/*case 2:	// Tank Battle
+				gameCanvas = new TankBattleGameCanvas();
+				break;*/
+		}
+		gameSelector = null;
 		
-		// HeadToHeadGameCanvas gameCanvas = new PongGameCanvas();
-		HeadToHeadGameCanvas gameCanvas = new BlasteroidsGameCanvas();
+		// Set up the selected game
 		addGameCanvas(frame, gameCanvas);
 		initializeFrame(frame);
 		doubleBuffer(gameCanvas);
 		
-		System.out.println("Starting game");
-		gameCanvas.newGame();
-		
-		// TODO Show continue/return to menu screen
-		
-		/*try {
-			gameCanvas.joinGameLoopThread();
+		// Run the game forever
+		try {
+			do {
+				System.out.println("Starting game.");
+				gameCanvas.newGame();
+				gameCanvas.startGameLoop();
+				gameCanvas.joinGameLoopThread();
+				System.out.println("Game finished.");
+				System.gc();	// Run the garbage collector
+			} while (true);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 		
-		System.exit(0);*/
+		// TODO Show continue/return to menu screen
+		
+		System.exit(0);
 	}
 	
 	private static GameSelectionCanvas createGameSelectionCanvas() {

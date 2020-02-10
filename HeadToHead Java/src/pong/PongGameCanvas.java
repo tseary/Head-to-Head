@@ -43,11 +43,10 @@ public class PongGameCanvas extends HeadToHeadGameCanvas {
 		
 		newRound();
 		
+		// Reset player scores
 		for (Player player : players) {
 			player.score = 0;
 		}
-		
-		startGameLoop();
 	}
 	
 	@Override
@@ -84,9 +83,6 @@ public class PongGameCanvas extends HeadToHeadGameCanvas {
 	
 	@Override
 	protected void physicsTick() {
-		// DEBUG
-		// super.gameTick();
-		
 		// Move the paddles
 		for (int i = 0; i < players.length; i++) {
 			boolean leftPressed = players[i].getButton(0).isPressed(),

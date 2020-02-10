@@ -23,24 +23,38 @@ public class GameSelectionCanvas extends HeadToHeadGameCanvas {
 		borderColors = new ArrayList<Color>();
 	}
 	
-	public void addThumbnail(Image thumbnail, Color borderColor) {
+	/**
+	 * Adds a game thumbnail to the list of available games.
+	 * @param thumbnail
+	 * @param borderColor
+	 * @return The index assigned to the game. This matches the value
+	 *         returned by getSelectedIndex() if this game is chosen.
+	 */
+	public int addThumbnail(Image thumbnail, Color borderColor) {
 		System.out.println("GameSelectionCanvas.addThumbnail()");
 		
 		gameThumbs.add(thumbnail);
 		borderColors.add(borderColor);
+		
+		return gameThumbs.size() - 1;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public int getSelectedIndex() {
+		return selectedGameIndex;
 	}
 	
 	@Override
 	public void newGame() {
 		System.out.println("GameSelectionCanvas.newGame()");
-		
-		startGameLoop();
 	}
 	
 	@Override
 	public void newRound() {
 		System.out.println("GameSelectionCanvas.newRound()");
-		
 	}
 	
 	@Override
@@ -63,7 +77,11 @@ public class GameSelectionCanvas extends HeadToHeadGameCanvas {
 		}
 		
 		if (selectedGameIndex >= 0) {
-			stopGameLoop();
+			try {
+				stopGameLoop();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
