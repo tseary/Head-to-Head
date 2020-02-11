@@ -1,9 +1,12 @@
-package blasteroids;
+package tankbattle;
 
+import java.awt.Polygon;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
 
+import blasteroids.Bullet;
+import blasteroids.Fragment;
 import geometry.Vector2D;
 import headtohead.IOwnable;
 import headtohead.IScorable;
@@ -11,23 +14,24 @@ import headtohead.Player;
 import physics.IPolygon;
 import physics.RotatablePolygonPhysicsObject;
 
-public class Spaceship extends RotatablePolygonPhysicsObject implements IOwnable, IScorable {
+public class Tank extends RotatablePolygonPhysicsObject implements IOwnable, IPolygon, IScorable {
 	
 	private Player owner;
 	
-	static final double bulletSpeed = 50d;
-	static final double spaceshipMass = 100d;
+	static final double bulletSpeed = 100d;
 	
-	// private boolean alive = true;
 	private static final int fullHealth = 3;
 	private int health = fullHealth;
+	
+	private static final int fullAmmo = 15;
+	private int ammo = fullAmmo;
 	
 	/**
 	 * 
 	 * @param heading
 	 *            The heading angle in radians.
 	 */
-	public Spaceship(double angle, Player owner) {
+	public Tank(double angle, Player owner) {
 		this.angle = angle;
 		this.owner = owner;
 	}
@@ -39,6 +43,13 @@ public class Spaceship extends RotatablePolygonPhysicsObject implements IOwnable
 	 * @return
 	 */
 	public Bullet shoot() {
+		// Can't shoot if out of ammo
+		if (ammo == 0) {
+			return null;
+		}
+		
+		ammo--;
+		
 		Bullet bullet = new Bullet(owner);
 		bullet.position = this.position
 				.sum(new Vector2D(getRadius() * 1.3d, angle, true));
@@ -56,6 +67,10 @@ public class Spaceship extends RotatablePolygonPhysicsObject implements IOwnable
 		velocity = velocity.scalarProduct(0.5d);
 	}
 	
+	public int getAmmo() {
+		return ammo;
+	}
+	
 	public void setAlive(boolean alive) {
 		health = alive ? fullHealth : 0;
 	}
@@ -68,35 +83,50 @@ public class Spaceship extends RotatablePolygonPhysicsObject implements IOwnable
 		return health > 0;
 	}
 	
-	/*@Override
-	public boolean isTouching(PhysicsObject obj) {
-		// Check if any point on the outline is inside the obj
-		Vector2D[] outline = getOutlineVectors(0d);
-		double objRadiusSqr = Math.pow(obj.getRadius(), 2d);
-		for (Vector2D point : outline) {
-			if (point.difference(obj.position).lengthSquared() <= objRadiusSqr) {
-				return true;
-			}
-		}
-		
-		// If the outline isn't touching, do the base collision detection
-		return super.isTouching(obj);
-	}*/
-	
 	@Override
 	public Vector2D[] getOutlineVectors(double extrapolateTime) {
-		// A number of radians < PI
-		final double wingAngle = 2.4d;
+		final double cornerAngle1 = 0.165d * Math.PI;
+		final double cornerAngle2 = 0.138d * Math.PI;
+		final double cornerAngle3 = 0.20d * Math.PI;
 		
-		// The scale of the triangle
-		final double vertexRadius = getRadius() / 0.7d;
+		final double cornerRadius1 = 1.06d * getRadius();
+		final double cornerRadius2 = 1.24d * getRadius();
+		final double cornerRadius3 = 1.39d * getRadius();
+		
+		final double barrelBaseAngle = 0.025d * Math.PI;
+		final double barrelEndAngle = 0.015d * Math.PI;
+		
+		final double barrelBaseRadius = 0.93d * getRadius();
+		final double barrelEndRadius = 1.60d * getRadius();
 		
 		Vector2D outlinePosition = IPolygon.extrapolatePosition(this, extrapolateTime);
 		
 		return new Vector2D[] {
-				outlinePosition.sum(new Vector2D(vertexRadius, angle, true)),
-				outlinePosition.sum(new Vector2D(vertexRadius, angle + wingAngle, true)),
-				outlinePosition.sum(new Vector2D(vertexRadius, angle - wingAngle, true)) };
+				outlinePosition.sum(new Vector2D(barrelBaseRadius, angle - barrelBaseAngle, true)),	// Barrel
+				outlinePosition.sum(new Vector2D(barrelEndRadius, angle - barrelEndAngle, true)),
+				outlinePosition.sum(new Vector2D(barrelEndRadius, angle + barrelEndAngle, true)),
+				outlinePosition.sum(new Vector2D(barrelBaseRadius, angle + barrelBaseAngle, true)),
+				
+				outlinePosition.sum(new Vector2D(cornerRadius1, angle + cornerAngle1, true)),	// Front left
+				outlinePosition.sum(new Vector2D(cornerRadius2, angle + cornerAngle2, true)),
+				outlinePosition.sum(new Vector2D(cornerRadius3, angle + cornerAngle3, true)),
+				
+				outlinePosition.sum(new Vector2D(cornerRadius3, angle + Math.PI - cornerAngle3, true)),	// Rear left
+				outlinePosition.sum(new Vector2D(cornerRadius2, angle + Math.PI - cornerAngle2, true)),
+				outlinePosition.sum(new Vector2D(cornerRadius1, angle + Math.PI - cornerAngle1, true)),
+				
+				outlinePosition.sum(new Vector2D(cornerRadius1, angle + Math.PI + cornerAngle1, true)),	// Rear right
+				outlinePosition.sum(new Vector2D(cornerRadius2, angle + Math.PI + cornerAngle2, true)),
+				outlinePosition.sum(new Vector2D(cornerRadius3, angle + Math.PI + cornerAngle3, true)),
+				
+				outlinePosition.sum(new Vector2D(cornerRadius3, angle - cornerAngle3, true)),	// Front right
+				outlinePosition.sum(new Vector2D(cornerRadius2, angle - cornerAngle2, true)),
+				outlinePosition.sum(new Vector2D(cornerRadius1, angle - cornerAngle1, true)) };
+	}
+	
+	@Override
+	public Polygon getOutline(double extrapolateTime) {
+		return IPolygon.vectorsToPolygon(getOutlineVectors(extrapolateTime));
 	}
 	
 	/**
@@ -111,8 +141,8 @@ public class Spaceship extends RotatablePolygonPhysicsObject implements IOwnable
 		Collection<Fragment> fragments = new ArrayList<Fragment>(shipOutline.length + 1);
 		
 		// The proportional speed at which fragments move away from the ship center
-		final double fragmentSplitSpeedMax = 5d;
-		final double fragmentRotationSpeedMax = 6d;
+		final double fragmentSplitSpeedMax = 10d;
+		final double fragmentRotationSpeedMax = 20d;
 		
 		Random random = new Random();
 		
@@ -125,14 +155,14 @@ public class Spaceship extends RotatablePolygonPhysicsObject implements IOwnable
 				this.position.sum(new Vector2D(3.5d, headAngle + 0.45d * Math.PI, true)),	// Hand
 				this.position.sum(new Vector2D(0.3d, headAngle + 0.6d * Math.PI, true)),	// Armpit
 				this.position.sum(new Vector2D(5d, headAngle + 0.9d * Math.PI, true)),		// Leg
-				this.position.sum(new Vector2D(1.5d, headAngle + Math.PI, true)),				// Crotch
+				this.position.sum(new Vector2D(1.5d, headAngle + Math.PI, true)),			// Crotch
 				this.position.sum(new Vector2D(5d, headAngle + 1.1d * Math.PI, true)),		// Leg
 				this.position.sum(new Vector2D(0.3d, headAngle + 1.4d * Math.PI, true)),	// Armpit
 				this.position.sum(new Vector2D(3.5d, headAngle + 1.55d * Math.PI, true)) },	// Hand
 				null);
 		
 		fragmentMan.velocity = this.velocity.scalarProduct(0.3d);
-		fragmentMan.angularVelocity = fragmentRotationSpeedMax * (2d * random.nextDouble() - 1d);
+		// fragmentMan.angularVelocity = fragmentRotationSpeedMax * (2d * random.nextDouble() - 1d);
 		
 		fragments.add(fragmentMan);
 		
@@ -148,14 +178,15 @@ public class Spaceship extends RotatablePolygonPhysicsObject implements IOwnable
 					this.position,
 					shipOutlineMidpoints[i],
 					shipOutline[i],
-					shipOutlineMidpoints[i > 0
-							? i - 1 : ((shipOutlineMidpoints.length - 1) % shipOutlineMidpoints.length)] },
+					shipOutlineMidpoints[i > 0 ? i - 1 : ((shipOutlineMidpoints.length - 1) % shipOutlineMidpoints.length)] },
 					this.owner);
 			
 			fragment.velocity = this.velocity.sum(
 					shipOutline[i].difference(this.position).scalarProduct(
 							fragmentSplitSpeedMax * random.nextDouble()));
+			fragment.acceleration = fragment.velocity.scalarProduct(-2d);
 			fragment.angularVelocity = fragmentRotationSpeedMax * (2d * random.nextDouble() - 1d);
+			fragment.angularAcceleration = fragment.angularVelocity * -2d;
 			
 			fragments.add(fragment);
 		}
@@ -165,12 +196,7 @@ public class Spaceship extends RotatablePolygonPhysicsObject implements IOwnable
 	
 	@Override
 	public double getRadius() {
-		return 8d;
-	}
-	
-	@Override
-	public double getMass() {
-		return spaceshipMass;
+		return 12d;
 	}
 	
 	@Override
@@ -180,6 +206,6 @@ public class Spaceship extends RotatablePolygonPhysicsObject implements IOwnable
 	
 	@Override
 	public int getScore() {
-		return (int)(10d * velocity.length());
+		return 100 * (fullHealth - health);
 	}
 }

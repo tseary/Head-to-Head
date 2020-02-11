@@ -1,6 +1,4 @@
-package blasteroids;
-
-import headtohead.Player;
+package headtohead;
 
 public interface IOwnable {
 	public Player getOwner();

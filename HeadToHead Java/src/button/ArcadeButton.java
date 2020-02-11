@@ -1,9 +1,15 @@
-package headtohead;
+package button;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-public class ArcadeButton implements KeyListener {
+/**
+ * A physical button, bound to a keyboard key.
+ * 
+ * @author Thomas
+ *
+ */
+public class ArcadeButton implements IButton, KeyListener {
 	
 	protected int keyCode;
 	protected boolean pressed = false;
@@ -23,15 +29,6 @@ public class ArcadeButton implements KeyListener {
 	
 	public void resetPressCounter() {
 		pressCounter = 0;
-	}
-	
-	public void keyPressed() {
-		// Ignore repeated press events
-		if (pressed) {
-			return;
-		}
-		pressed = true;
-		pressCounter++;
 	}
 	
 	@Override

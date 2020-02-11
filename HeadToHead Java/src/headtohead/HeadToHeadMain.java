@@ -9,6 +9,7 @@ import javax.swing.JFrame;
 
 import blasteroids.BlasteroidsGameCanvas;
 import pong.PongGameCanvas;
+import tankbattle.TankBattleGameCanvas;
 
 public class HeadToHeadMain {
 	

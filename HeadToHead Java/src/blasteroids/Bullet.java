@@ -1,6 +1,8 @@
 package blasteroids;
 
+import headtohead.IOwnable;
 import headtohead.Player;
+import physics.AgedPhysicsObject;
 
 public class Bullet extends AgedPhysicsObject implements IOwnable {
 	

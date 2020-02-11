@@ -15,7 +15,6 @@ public class SoundPlayer {
 	public SoundPlayer() {
 		soundURLs = new HashMap<String, URL>();
 		
-		// TODO Make sound keys game-specific
 		soundURLs.put("Pew", SoundPlayer.class.getResource("/soundfx/pew150ms.wav"));
 		soundURLs.put("Bounce", SoundPlayer.class.getResource("/soundfx/bounce.wav"));
 		soundURLs.put("Bump", SoundPlayer.class.getResource("/soundfx/bump.wav"));
@@ -25,6 +24,8 @@ public class SoundPlayer {
 		soundURLs.put("GameOver", SoundPlayer.class.getResource("/soundfx/gameover3.wav"));
 		soundURLs.put("GameOverP0", SoundPlayer.class.getResource("/soundfx/rightwins.wav"));
 		soundURLs.put("GameOverP1", SoundPlayer.class.getResource("/soundfx/leftwins.wav"));
+		soundURLs.put("PwankC", SoundPlayer.class.getResource("/soundfx/pwankc.wav"));
+		soundURLs.put("PwankE", SoundPlayer.class.getResource("/soundfx/pwanke.wav"));
 	}
 	
 	public void playSound(String soundName) {

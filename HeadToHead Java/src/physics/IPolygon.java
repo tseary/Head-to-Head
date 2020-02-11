@@ -1,4 +1,4 @@
-package blasteroids;
+package physics;
 
 import java.awt.Polygon;
 

@@ -24,6 +24,10 @@ import java.io.PrintStream;
 
 import javax.swing.Timer;
 
+import button.ArcadeButton;
+import button.IButton;
+import button.InputSource;
+import button.VirtualButton;
 import sound.SoundPlayer;
 
 public abstract class HeadToHeadGameCanvas extends Canvas
@@ -49,7 +53,7 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	private Thread waitingThread = null;
 	
 	// Demo mode
-	private final int demoIdleTime = 60000; // Go to demo mode after 60s of inactivity
+	private int demoIdleTime = 60000; // Go to demo mode after 60s of inactivity
 	protected Timer demoTimer;
 	protected boolean demoMode = false;
 	
@@ -99,11 +103,14 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
+			
+			demoIdleTime = 10000;
 		}
 		
 		// Demo mode
 		demoTimer = new Timer(demoIdleTime, this);
 		demoTimer.setActionCommand("DemoMode");
+		demoTimer.setRepeats(false);
 		
 		// Sound
 		sound = new SoundPlayer();
@@ -121,6 +128,7 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	/** Calculates the best size for the video based on the screen size. */
 	private void initializeVideoScale() {
 		// Get the screen size
+
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		videoScale = Math.min((int)screenSize.getWidth() / gameWidth,
 				(int)screenSize.getHeight() / gameHeight);
@@ -132,8 +140,8 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	}
 	
 	/**
-	 * Creates and populates the array of arcade buttons, with hard-coded key codes:
-	 * { A, S, D, J, K, L }
+	 * Creates and populates the array of arcade buttons, with hard-coded key
+	 * codes: { A, S, D, J, K, L }
 	 */
 	protected void initializeButtons() {
 		buttons = new ArcadeButton[6];
@@ -148,19 +156,19 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	}
 	
 	/**
-	 * Creates the array of players. Gives each player their color and arcade buttons.
-	 * Call super.initializePlayers() if overriding this function.
+	 * Creates the array of players. Gives each player their color and arcade
+	 * buttons. Call super.initializePlayers() if overriding this function.
 	 */
 	protected void initializePlayers() {
 		players = new Player[2];
 		
-		ArcadeButton[] player0Buttons = new ArcadeButton[] {
-				buttons[0], buttons[1], buttons[2] };
-		ArcadeButton[] player1Buttons = new ArcadeButton[] {
-				buttons[3], buttons[4], buttons[5] };
+		InputSource player0InputSource = new InputSource(new IButton[] {
+				buttons[0], buttons[1], buttons[2] });
+		InputSource player1InputSource = new InputSource(new IButton[] {
+				buttons[3], buttons[4], buttons[5] });
 		
-		players[0] = new Player(player0Buttons, new Color(0xff1220));	// Red
-		players[1] = new Player(player1Buttons, new Color(0xf7e700));	// Yellow
+		players[0] = new Player(player0InputSource, new Color(0xff1220)); // Red
+		players[1] = new Player(player1InputSource, new Color(0xf7e700)); // Yellow
 	}
 	
 	/**
@@ -169,6 +177,11 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	 */
 	public void startGameLoop() throws InterruptedException {
 		stopGameLoop();
+		
+		// Start the demo timer if we are not in demo mode already
+		if (!demoMode) {
+			demoTimer.start();
+		}
 		
 		// Start a new thread
 		gameLoopThread = new Thread(gameLoopRunnable);
@@ -180,8 +193,12 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	 * @throws InterruptedException
 	 */
 	public void stopGameLoop() throws InterruptedException {
+		// Stop the demo timer
+		demoTimer.stop();
+		
 		// Stop the old thread if there is one
 		if (gameLoopThread != null && gameLoopThread.isAlive()) {
+			System.out.println("stopping old game loop thread");
 			gameLoopThread.interrupt();
 			gameLoopThread = null;
 		}
@@ -201,31 +218,48 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	
 	/**
 	 * Re-orders a player's buttons to suit a right- or left-handed user.
-	 * @param playerIndex The array index of the player.
-	 * @param leftHanded True if the user is left-handed, false if they are right-handed.
+	 * 
+	 * @param playerIndex
+	 *            The array index of the player.
+	 * @param leftHanded
+	 *            True if the user is left-handed, false if they are
+	 *            right-handed.
 	 */
 	protected void setPlayerHand(int playerIndex, boolean leftHanded) {
-		// Create an array of buttons in the user's preferred order
-		ArcadeButton[] playerButtons = new ArcadeButton[3];
-		int[] buttonIndexes = leftHanded ? getLeftHandedButtonOrder() : new int[] { 0, 1, 2 };
-		for (int i = 0; i < 3; i++) {
-			playerButtons[i] = buttons[3 * playerIndex + buttonIndexes[i]];
+		InputSource playerInputSource = players[playerIndex].getInputSource();
+		
+		// If the player doesn't have an input source, create an array of buttons in the right-handed order
+		/*if (playerInputSource == null) {
+			IButton[] playerButtons = new IButton[3];
+			for (int i = 0; i < 3; i++) {
+				playerButtons[i] = buttons[3 * playerIndex + i];
+			}
+			players[playerIndex].setInputSource(new InputSource(playerButtons));
+		}*/
+		
+		// Remap the buttons
+		if (leftHanded) {
+			playerInputSource.setButtonRemap(getLeftHandedButtonRemap());
+		} else {
+			playerInputSource.clearButtonRemap();
 		}
 		
-		// Set the buttons
-		players[playerIndex].setButtons(playerButtons);
+		// TODO Shuffle the press counters too
 	}
 	
 	/**
-	 * Override this to support different button assignments for left-handed players.
+	 * Override this to support different button assignments for left-handed
+	 * players.
+	 * 
 	 * @return A permutation of the array { 0, 1, 2 }.
 	 */
-	protected int[] getLeftHandedButtonOrder() {
+	protected int[] getLeftHandedButtonRemap() {
 		return new int[] { 0, 1, 2 };
 	}
 	
 	/**
 	 * Gets the width of the game view in pixels.
+	 * 
 	 * @return
 	 */
 	protected int getGameWidth() {
@@ -234,6 +268,7 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	
 	/**
 	 * Gets the height of the game view in pixels.
+	 * 
 	 * @return
 	 */
 	protected int getGameHeight() {
@@ -254,10 +289,28 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	private void setDemoMode(boolean demoMode) {
 		this.demoMode = demoMode;
 		
-		// Start a new game when leaving demo mode
-		if (!this.demoMode) {
-			newGame();
+		// TODO fix this
+		// Set the players to human or computer control
+		InputSource player0InputSource, player1InputSource;
+		if (this.demoMode) {
+			// Computer
+			player0InputSource = new DemoInputSource(new IButton[] {
+					new VirtualButton(), new VirtualButton(), new VirtualButton() });
+			player1InputSource = new DemoInputSource(new IButton[] {
+					new VirtualButton(), new VirtualButton(), new VirtualButton() });
+		} else {
+			// Human
+			// TODO This will lose the handedness setting
+			player0InputSource = new InputSource(new IButton[] {
+					buttons[0], buttons[1], buttons[2] });
+			player1InputSource = new InputSource(new IButton[] {
+					buttons[3], buttons[4], buttons[5] });
 		}
+		players[0].setInputSource(player0InputSource);
+		players[1].setInputSource(player1InputSource);
+		
+		// Start a new game when entering or leaving demo mode
+		newGame();
 	}
 	
 	public void togglePause() {
@@ -321,7 +374,6 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 			
 			case "DemoMode":
 				setDemoMode(true);
-				demoTimer.stop();
 				break;
 		}
 	}
@@ -335,12 +387,14 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	
 	@Override
 	public void keyPressed(KeyEvent e) {
-		// Restart the demo timer
-		demoTimer.restart();
-		
-		// Exit demo mode
 		if (demoMode) {
+			// Exit demo mode
 			setDemoMode(false);
+		} else {
+			// Restart the demo timer
+			if (demoTimer.isRunning()) {
+				demoTimer.restart();
+			}
 		}
 		
 		switch (e.getKeyCode()) {

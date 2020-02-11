@@ -1,4 +1,4 @@
-package blasteroids;
+package physics;
 
 import geometry.Vector2D;
 
@@ -78,7 +78,7 @@ public abstract class PhysicsObject {
 		}
 	}
 	
-	protected void wrapPosition(double width, double height) {
+	public void wrapPosition(double width, double height) {
 		position.x %= width;
 		if (position.x < 0d) {
 			position.x += width;
