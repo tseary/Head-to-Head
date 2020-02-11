@@ -52,8 +52,8 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	// Game timing
 	private static final int roundStartTicks = gameTimerFPS;
 	private int roundStartCounter;
-	private static final int roundOverTicks = (int) (2d * gameTimerFPS);
-	private static final int gameOverTicks = roundOverTicks + (int) (2.5d * gameTimerFPS);
+	private static final int roundOverTicks = (int)(2d * gameTimerFPS);
+	private static final int gameOverTicks = roundOverTicks + (int)(2.5d * gameTimerFPS);
 	private static final int roundsPerGame = 3;
 	private int roundOverCounter;
 	private int round;
@@ -76,7 +76,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	protected List<ScoreMarker> playerScoreMarkers;
 	
 	public TankBattleGameCanvas() {
-		super(400, gameTimerFPS);
+		super(400);
 		
 		// Create lists
 		tanks = new Tank[players.length];
@@ -143,7 +143,6 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		// Start the game timer
 		deltaTimeAlive = getPhysicsTickMillis() / 1000d;
 		deltaTimeDead = deltaTimeAlive / 4d;
-		startGameLoop();
 	}
 	
 	@Override
@@ -272,7 +271,11 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 			if (finalRound) {
 				if (roundOverCounter >= gameOverTicks) {
 					// Game over time has elapsed
-					newGame();
+					try {
+						stopGameLoop();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 					return true;
 				}
 				
@@ -498,7 +501,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		
 		// Create a score marker if the object is physical
 		if (scoreObj instanceof PhysicsObject) {
-			PhysicsObject physicsObj = (PhysicsObject) scoreObj;
+			PhysicsObject physicsObj = (PhysicsObject)scoreObj;
 			scoreMarkers.add(new ScoreMarker(String.valueOf(score),
 					physicsObj.position, owner, isPlayerInverted(owner)));
 		}
@@ -621,8 +624,8 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 			// Draw a line connecting the tanks
 			if (DebugMode.isEnabled()) {
 				g.setColor(Color.BLUE);
-				g.drawLine((int) tanks[0].position.x, (int) tanks[0].position.y,
-						(int) tanks[1].position.x, (int) tanks[1].position.y);
+				g.drawLine((int)tanks[0].position.x, (int)tanks[0].position.y,
+						(int)tanks[1].position.x, (int)tanks[1].position.y);
 			}
 		}
 		
@@ -647,7 +650,8 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 			drawTextMarker(g, "DEMO", yLine1);
 			drawTextMarker(g, "PRESS ANY BUTTON TO START", yLine2);
 		} else if (roundStartCounter < roundStartTicks) {
-			String startString = round > roundsPerGame ? "OVERTIME"
+			String startString = round > roundsPerGame
+					? "OVERTIME"
 					: String.format("ROUND %d OF %d", round, roundsPerGame);
 			drawTextMarker(g, startString, yLine1);
 		} else if (roundOverCounter > 0 && roundOverCounter <= roundOverTicks) {
@@ -692,9 +696,9 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		
 		Vector2D drawPosition = IPolygon.extrapolatePosition(obj, extrapolateTime);
 		
-		int radius = Math.max(1, (int) obj.getRadius());
-		int xDraw = (int) drawPosition.x - radius;
-		int yDraw = (int) drawPosition.y - radius;
+		int radius = Math.max(1, (int)obj.getRadius());
+		int xDraw = (int)drawPosition.x - radius;
+		int yDraw = (int)drawPosition.y - radius;
 		int diameter = 2 * radius;
 		
 		g.fillOval(xDraw, yDraw, diameter, diameter);
@@ -790,12 +794,12 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		// Center the text
 		int xOffset = g.getFontMetrics().stringWidth(scoreMarker.value) / 2,
 				yOffset = 5;
-		int xDraw = (int) (scoreMarker.position.x + (scoreMarker.isInverted() ? xOffset : -xOffset)),
-				yDraw = (int) (scoreMarker.position.y - (scoreMarker.isInverted() ? yOffset : -yOffset));
+		int xDraw = (int)(scoreMarker.position.x + (scoreMarker.isInverted() ? xOffset : -xOffset)),
+				yDraw = (int)(scoreMarker.position.y - (scoreMarker.isInverted() ? yOffset : -yOffset));
 		
 		// Draw inverted or not
 		if (scoreMarker.isInverted()) {
-			Graphics2D g2d = (Graphics2D) g;
+			Graphics2D g2d = (Graphics2D)g;
 			g2d.rotate(Math.PI);
 			g.drawString(scoreMarker.value, -xDraw, -yDraw);
 			g2d.rotate(-Math.PI);

@@ -93,7 +93,7 @@ public class GameSelectionCanvas extends HeadToHeadGameCanvas {
 		
 		// Choose the size of the thumbnail grid
 		final int thumbnailSize = 100;
-		final int rows = 2, cols = 1;
+		final int rows = 2, cols = 2;
 		final int xPitch = 200, yPitch = 200;
 		final int xOffset = (getGameWidth() - (cols - 1) * xPitch - thumbnailSize) / 2;
 		final int yOffset = (getGameHeight() - (rows - 1) * yPitch - thumbnailSize) / 2;

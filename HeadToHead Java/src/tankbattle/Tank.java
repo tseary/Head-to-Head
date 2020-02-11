@@ -44,7 +44,7 @@ public class Tank extends RotatablePolygonPhysicsObject implements IOwnable, IPo
 	 */
 	public Bullet shoot() {
 		// Can't shoot if out of ammo
-		if (ammo == 0) {
+		if (ammo <= 0) {
 			return null;
 		}
 		
@@ -178,7 +178,8 @@ public class Tank extends RotatablePolygonPhysicsObject implements IOwnable, IPo
 					this.position,
 					shipOutlineMidpoints[i],
 					shipOutline[i],
-					shipOutlineMidpoints[i > 0 ? i - 1 : ((shipOutlineMidpoints.length - 1) % shipOutlineMidpoints.length)] },
+					shipOutlineMidpoints[i > 0
+							? i - 1 : ((shipOutlineMidpoints.length - 1) % shipOutlineMidpoints.length)] },
 					this.owner);
 			
 			fragment.velocity = this.velocity.sum(

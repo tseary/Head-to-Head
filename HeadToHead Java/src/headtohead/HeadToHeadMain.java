@@ -2,7 +2,9 @@ package headtohead;
 
 import java.awt.Canvas;
 import java.awt.Color;
-import java.io.IOException;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -27,7 +29,7 @@ public class HeadToHeadMain {
 		
 		// Wait for the user to select a game
 		try {
-			gameSelector.startGameLoop();
+			gameSelector.startGameLoop(false);
 			gameSelector.joinGameLoopThread();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -45,9 +47,9 @@ public class HeadToHeadMain {
 			case 1:	// Blasteroids
 				gameCanvas = new BlasteroidsGameCanvas();
 				break;
-			/*case 2:	// Tank Battle
+			case 2:	// Tank Battle
 				gameCanvas = new TankBattleGameCanvas();
-				break;*/
+				break;
 		}
 		gameSelector = null;
 		
@@ -78,16 +80,25 @@ public class HeadToHeadMain {
 	private static GameSelectionCanvas createGameSelectionCanvas() {
 		GameSelectionCanvas gameSelector = new GameSelectionCanvas();
 		
-		try {
-			gameSelector.addThumbnail(
-					ImageIO.read(HeadToHeadMain.class.getResource("/thumbs/pong.png")), Color.YELLOW);
-			gameSelector.addThumbnail(
-					ImageIO.read(HeadToHeadMain.class.getResource("/thumbs/blasteroids.png")), Color.DARK_GRAY);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		gameSelector.addThumbnail(loadImage("/thumbs/pong.png"), Color.YELLOW);
+		gameSelector.addThumbnail(loadImage("/thumbs/blasteroids.png"), Color.DARK_GRAY);
+		gameSelector.addThumbnail(loadImage("/thumbs/tankbattle.png"), Color.RED);
 		
 		return gameSelector;
+	}
+	
+	private static Image loadImage(String path) {
+		try {
+			return ImageIO.read(HeadToHeadMain.class.getResource(path));
+		} catch (Exception e) {
+			final int imageSize = 100;
+			BufferedImage image = new BufferedImage(imageSize, imageSize, BufferedImage.TYPE_INT_RGB);
+			Graphics g = image.createGraphics();
+			g.setColor(Color.RED);
+			g.drawLine(0, 0, imageSize - 1, imageSize - 1);
+			g.drawLine(0, imageSize - 1, imageSize - 1, 0);
+			return image;
+		}
 	}
 	
 	private static void initializeFrame(JFrame frame) {

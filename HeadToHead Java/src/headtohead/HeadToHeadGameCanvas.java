@@ -50,9 +50,10 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	// Game loop
 	private GameLoop gameLoopRunnable;
 	private Thread gameLoopThread;
-	private Thread waitingThread = null;
 	
 	// Demo mode
+	// TODO Remove game-level demo mode. If this timer expires, go back to the selection screen.
+	// TODO Periodically show demos of each game on the selection screen.
 	private int demoIdleTime = 60000; // Go to demo mode after 60s of inactivity
 	protected Timer demoTimer;
 	protected boolean demoMode = false;
@@ -128,7 +129,7 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	/** Calculates the best size for the video based on the screen size. */
 	private void initializeVideoScale() {
 		// Get the screen size
-
+		
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		videoScale = Math.min((int)screenSize.getWidth() / gameWidth,
 				(int)screenSize.getHeight() / gameHeight);
@@ -173,19 +174,29 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	
 	/**
 	 * Starts the game loop Runnable in a new thread.
+	 * Also starts the demo timer.
 	 * @throws InterruptedException
 	 */
 	public void startGameLoop() throws InterruptedException {
+		startGameLoop(true);
+	}
+	
+	/**
+	 * Starts the game loop Runnable in a new thread.
+	 * @param enableDemo If true, the demo timer is started.
+	 * @throws InterruptedException
+	 */
+	public void startGameLoop(boolean enableDemo) throws InterruptedException {
 		stopGameLoop();
-		
-		// Start the demo timer if we are not in demo mode already
-		if (!demoMode) {
-			demoTimer.start();
-		}
 		
 		// Start a new thread
 		gameLoopThread = new Thread(gameLoopRunnable);
 		gameLoopThread.start();
+		
+		// Start the demo timer if we are not in demo mode already
+		if (!demoMode && enableDemo) {
+			demoTimer.start();
+		}
 	}
 	
 	/**
@@ -367,11 +378,6 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		switch (e.getActionCommand()) {
-			/*case "GameTick":
-				physicsTick();
-				render();
-				break;*/
-			
 			case "DemoMode":
 				setDemoMode(true);
 				break;
