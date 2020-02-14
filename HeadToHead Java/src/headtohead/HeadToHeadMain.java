@@ -19,39 +19,43 @@ public class HeadToHeadMain {
 		JFrame frame = new JFrame("Head to Head v0.36");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		GameSelectionCanvas gameSelector = createGameSelectionCanvas();
-		
-		addGameCanvas(frame, gameSelector);
-		initializeFrame(frame);
-		doubleBuffer(gameSelector);
-		
-		gameSelector.newGame();
-		
-		// Wait for the user to select a game
-		try {
-			gameSelector.startGameLoop(false);
-			gameSelector.joinGameLoopThread();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		
-		removeGameCanvas(frame, gameSelector);
-		
-		// Create an instance of the selected game
 		HeadToHeadGameCanvas gameCanvas;
-		switch (gameSelector.getSelectedIndex()) {
-			case 0:	// Pong
-				gameCanvas = new PongGameCanvas();
-				break;
-			default:
-			case 1:	// Blasteroids
-				gameCanvas = new BlasteroidsGameCanvas();
-				break;
-			case 2:	// Tank Battle
-				gameCanvas = new TankBattleGameCanvas();
-				break;
+		if (!DebugMode.isEnabled()) {
+			GameSelectionCanvas gameSelector = createGameSelectionCanvas();
+			
+			addGameCanvas(frame, gameSelector);
+			initializeFrame(frame);
+			doubleBuffer(gameSelector);
+			
+			gameSelector.newGame();
+			
+			// Wait for the user to select a game
+			try {
+				gameSelector.startGameLoop(false);
+				gameSelector.joinGameLoopThread();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+			removeGameCanvas(frame, gameSelector);
+			
+			// Create an instance of the selected game
+			switch (gameSelector.getSelectedIndex()) {
+				case 0:	// Pong
+					gameCanvas = new PongGameCanvas();
+					break;
+				default:
+				case 1:	// Blasteroids
+					gameCanvas = new BlasteroidsGameCanvas();
+					break;
+				case 2:	// Tank Battle
+					gameCanvas = new TankBattleGameCanvas();
+					break;
+			}
+			gameSelector = null;
+		} else {
+			gameCanvas = new TankBattleGameCanvas();
 		}
-		gameSelector = null;
 		
 		// Set up the selected game
 		addGameCanvas(frame, gameCanvas);
@@ -61,11 +65,9 @@ public class HeadToHeadMain {
 		// Run the game forever
 		try {
 			do {
-				System.out.println("Starting game.");
 				gameCanvas.newGame();
 				gameCanvas.startGameLoop();
 				gameCanvas.joinGameLoopThread();
-				System.out.println("Game finished.");
 				System.gc();	// Run the garbage collector
 			} while (true);
 		} catch (InterruptedException e) {

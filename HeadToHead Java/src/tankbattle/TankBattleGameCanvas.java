@@ -46,6 +46,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	
 	// Physics objects
 	protected Tank[] tanks;
+	protected List<Wall> walls;
 	protected List<Bullet> bullets;
 	protected List<Fragment> fragments;
 	
@@ -80,6 +81,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		
 		// Create lists
 		tanks = new Tank[players.length];
+		walls = new ArrayList<Wall>();
 		bullets = new ArrayList<Bullet>();
 		fragments = new ArrayList<Fragment>();
 		
@@ -169,10 +171,22 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		}
 		
 		// Clear lists
+		walls.clear();
 		bullets.clear();
 		fragments.clear();
 		soundRequests.clear();
 		scoreMarkers.clear();
+		
+		// Place walls
+		for (int i = 0; i < 3; i++) {
+			Wall wall = new Wall();
+			wall.position.x = 100d * i + 50d;
+			wall.position.y = 150d * i + 100d;
+			if (i == 1) {
+				wall.angle = Math.PI / 4d;
+			}
+			walls.add(wall);
+		}
 		
 		// Reset the round counters
 		roundStartCounter = 0;
@@ -231,7 +245,9 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		ageScoreMarkers(deltaTimeAlive);
 		shootBullets();
 		
+		collideTankToWall();
 		collideTankToTank();
+		collideBulletToWall();
 		collideBulletToTank();
 	}
 	
@@ -249,6 +265,9 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		moveEverything(deltaTimeDead);
 		ageScoreMarkers(deltaTimeAlive);
 		shootBullets();
+		
+		collideTankToWall();
+		collideBulletToWall();
 	}
 	
 	/**
@@ -406,6 +425,27 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		}
 	}
 	
+	private void collideTankToWall() {
+		for (Tank tank : tanks) {
+			if (!tank.isAlive()) {
+				continue;
+			}
+			
+			for (Wall wall : walls) {
+				if (!tank.isTouching(wall)) {
+					continue;
+				}
+				
+				// Tank is touching wall
+				// Janky "push off" implementation results in weird lack of friction
+				// TODO Calculate normal force or something
+				tank.position = wall.position.sum(
+						tank.position.difference(wall.position).scalarProduct(1.05d));
+				tank.velocity = new Vector2D(0d, 0d);
+			}
+		}
+	}
+	
 	private void collideTankToTank() {
 		// Calculate tank-tank collisions
 		for (int a = 0; a < tanks.length - 1; a++) {
@@ -439,10 +479,21 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		}
 	}
 	
+	private void collideBulletToWall() {
+		for (Bullet bullet : bullets) {
+			for (Wall wall : walls) {
+				if (bullet.isTouching(wall)) {
+					bullet.velocity = new Vector2D(0d, 0d);	// DEBUG
+				}
+				// wall.isInside(bullet.position);
+			}
+		}
+	}
+	
 	private void collideBulletToTank() {
 		// Calculate spaceship-bullet collisions
-		for (Tank spaceship : tanks) {
-			if (!spaceship.isAlive()) {
+		for (Tank tank : tanks) {
+			if (!tank.isAlive()) {
 				continue;
 			}
 			
@@ -450,21 +501,21 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 				Bullet bullet = bullets.get(i);
 				
 				// No friendly fire
-				if (bullet.getOwner() == spaceship.getOwner()) {
+				if (bullet.getOwner() == tank.getOwner()) {
 					continue;
 				}
 				
 				// Bullet hits the spaceship
-				if (bullet.isTouching(spaceship)) {
-					spaceship.takeHit();
+				if (bullet.isTouching(tank)) {
+					tank.takeHit();
 					
 					// Bullet owner gets points
-					givePoints(bullet, spaceship);
+					givePoints(bullet, tank);
 					
-					if (spaceship.isAlive()) {
+					if (tank.isAlive()) {
 						requestSound("PwankE");
 					} else {
-						tankDied(spaceship);
+						tankDied(tank);
 					}
 					
 					// Remove the bullet from the list
@@ -573,6 +624,12 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		for (Fragment fragment : fragments) {
 			g.setColor(getOwnerColor(fragment));
 			drawPolygon(g, fragment, extrapolate);
+		}
+		
+		// Draw the walls
+		for (Wall wall : walls) {
+			g.setColor(Color.GRAY);
+			drawPolygon(g, wall, extrapolate);
 		}
 		
 		// Draw the player tanks

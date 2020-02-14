@@ -209,7 +209,6 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 		
 		// Stop the old thread if there is one
 		if (gameLoopThread != null && gameLoopThread.isAlive()) {
-			System.out.println("stopping old game loop thread");
 			gameLoopThread.interrupt();
 			gameLoopThread = null;
 		}

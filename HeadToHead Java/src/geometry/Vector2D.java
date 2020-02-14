@@ -83,7 +83,7 @@ public class Vector2D {
 	@Override
 	public boolean equals(Object o) {
 		if (o instanceof Vector2D) {
-			Vector2D oVector = (Vector2D) o;
+			Vector2D oVector = (Vector2D)o;
 			return this.x == oVector.x && this.y == oVector.y;
 		}
 		return false;
@@ -93,7 +93,7 @@ public class Vector2D {
 	public int hashCode() {
 		long xBits = Double.doubleToLongBits(this.x);
 		long yBits = Double.doubleToLongBits(this.y);
-		return (int) (xBits ^ (xBits >>> 32) ^ yBits ^ (yBits >>> 32));
+		return (int)(xBits ^ (xBits >>> 32) ^ yBits ^ (yBits >>> 32));
 	}
 	
 	/**
@@ -129,13 +129,23 @@ public class Vector2D {
 	}
 	
 	/**
-	 * Rotates this vector CCW by a.
+	 * Rotates this vector CCW.
 	 * 
 	 * @param angle
 	 *            The angle in radians.
 	 */
 	public void rotate(double angle) {
 		this.setAngle(this.angle() + angle);
+	}
+	
+	/**
+	 * Gets a rotated copy of this vector.
+	 * 
+	 * @param angle
+	 * @return This vector rotated by angle. This vector is not modified.
+	 */
+	public Vector2D getRotated(double angle) {
+		return new Vector2D(this.length(), this.angle() + angle, true);
 	}
 	
 	/**

@@ -8,6 +8,7 @@ import java.util.Random;
 import blasteroids.Bullet;
 import blasteroids.Fragment;
 import geometry.Vector2D;
+import headtohead.DebugMode;
 import headtohead.IOwnable;
 import headtohead.IScorable;
 import headtohead.Player;
@@ -49,6 +50,9 @@ public class Tank extends RotatablePolygonPhysicsObject implements IOwnable, IPo
 		}
 		
 		ammo--;
+		
+		// Unlimited ammo in debug mode
+		if (DebugMode.isEnabled() && ammo == 0) ammo = 1;
 		
 		Bullet bullet = new Bullet(owner);
 		bullet.position = this.position

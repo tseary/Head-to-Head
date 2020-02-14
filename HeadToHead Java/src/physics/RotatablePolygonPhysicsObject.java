@@ -25,7 +25,7 @@ public abstract class RotatablePolygonPhysicsObject extends RotatablePhysicsObje
 		
 		// Do polygon-polygon collision detection
 		RotatablePolygonPhysicsObject obj1 = this;
-		RotatablePolygonPhysicsObject obj2 = (RotatablePolygonPhysicsObject) obj;
+		RotatablePolygonPhysicsObject obj2 = (RotatablePolygonPhysicsObject)obj;
 		
 		Vector2D axis = obj2.position.difference(obj1.position).toUnit();
 		
@@ -57,7 +57,9 @@ public abstract class RotatablePolygonPhysicsObject extends RotatablePhysicsObje
 			}
 		}
 		
-		boolean touching = obj1Max >= obj2Min;
+		// boolean touching = obj1Max >= obj2Min;
+		final double OVERLAP = (obj1.getRadius() + obj2.getRadius()) * 0.1d;
+		boolean touching = obj1Max - obj2Min > OVERLAP;
 		if (DebugMode.isEnabled() && touching) {
 			System.out.println("Polygon-polygon collision");
 		}

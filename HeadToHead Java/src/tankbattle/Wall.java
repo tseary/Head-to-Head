@@ -9,18 +9,22 @@ public class Wall extends RotatablePolygonPhysicsObject {
 	
 	public Wall() {
 		outlineVectorsRelative = new Vector2D[] {
-				new Vector2D(20, 5),
-				new Vector2D(20, -5),
-				new Vector2D(-20, -5),
-				new Vector2D(-20, 5)
+				new Vector2D(40, 5),
+				new Vector2D(40, -5),
+				new Vector2D(-40, -5),
+				new Vector2D(-40, 5)
 		};
+	}
+	
+	public boolean isInside(Vector2D point) {
+		return false;
 	}
 	
 	@Override
 	public Vector2D[] getOutlineVectors(double extrapolateTime) {
 		Vector2D[] outlineVectors = new Vector2D[outlineVectorsRelative.length];
 		for (int i = 0; i < outlineVectors.length; i++) {
-			outlineVectors[i] = outlineVectorsRelative[i].sum(position);
+			outlineVectors[i] = outlineVectorsRelative[i].getRotated(angle).sum(position);
 		}
 		return outlineVectors;
 	}
