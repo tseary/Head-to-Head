@@ -111,7 +111,9 @@ public class HeadToHeadMain {
 			frame.setResizable(true);
 			frame.pack();
 		} else {
-			frame.setUndecorated(true);
+			if (!frame.isDisplayable()) {
+				frame.setUndecorated(true);
+			}
 			frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		}
 		frame.setVisible(true);

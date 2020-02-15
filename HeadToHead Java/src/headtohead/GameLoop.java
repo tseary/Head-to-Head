@@ -61,11 +61,16 @@ public class GameLoop implements Runnable {
 				try {
 					Thread.sleep(sleepTime);
 				} catch (InterruptedException e) {
-					System.out.println("run() sleep interrupted");
+					if (DebugMode.isEnabled()) {
+						System.out.println("run() sleep interrupted");
+					}
 					return;
 				}
 			}
 		}
-		System.out.println("run() was interrupted");
+		
+		if (DebugMode.isEnabled()) {
+			System.out.println("run() was interrupted");
+		}
 	}
 }

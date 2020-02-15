@@ -175,7 +175,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		asteroids.clear();
 		Random random = new Random();
 		for (int i = 0; i < 3 + round; i++) {
-			boolean bigOne = random.nextDouble() < 0.1d;
+			boolean bigOne = random.nextDouble() < 0.10d;
 			
 			Asteroid asteroid = new Asteroid(bigOne ? 3 : 2);
 			

@@ -31,11 +31,8 @@ public class GameSelectionCanvas extends HeadToHeadGameCanvas {
 	 *         returned by getSelectedIndex() if this game is chosen.
 	 */
 	public int addThumbnail(Image thumbnail, Color borderColor) {
-		System.out.println("GameSelectionCanvas.addThumbnail()");
-		
 		gameThumbs.add(thumbnail);
 		borderColors.add(borderColor);
-		
 		return gameThumbs.size() - 1;
 	}
 	
@@ -48,14 +45,10 @@ public class GameSelectionCanvas extends HeadToHeadGameCanvas {
 	}
 	
 	@Override
-	public void newGame() {
-		System.out.println("GameSelectionCanvas.newGame()");
-	}
+	public void newGame() {}
 	
 	@Override
-	public void newRound() {
-		System.out.println("GameSelectionCanvas.newRound()");
-	}
+	public void newRound() {}
 	
 	@Override
 	public long getPhysicsTickMillis() {
