@@ -379,7 +379,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	}
 	
 	private void moveEverything(double deltaTime) {
-		// Move all spaceships
+		// Move all tanks
 		for (Tank tank : tanks) {
 			tank.move(deltaTime);
 			
@@ -393,9 +393,12 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 					unitAngularVel = Math.abs(tank.angularVelocity) *
 							tankSteeringDrag / tankSteeringAccel;
 			double unitNoise = Math.max(unitVelocity, unitAngularVel);
-			int engineNoise = (int)Math.round(Math.min(Math.max(0, 3 * unitNoise), 3));
-			if (engineNoise > 0) {
-				requestSound("Engine" + engineNoise);
+			if (unitNoise > 0.9d) {
+				requestSound("Engine3");
+			} else if (unitNoise > 0.5d) {
+				requestSound("Engine2");
+			} else if (unitNoise > 0.2d) {
+				requestSound("Engine1");
 			}
 			
 			tank.wrapPosition(getGameWidth(), getGameHeight());
