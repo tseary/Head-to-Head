@@ -10,8 +10,6 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 	protected Vector2D size;
 	protected double boundingRadius;
 	
-	private Vector2D xAxis, yAxis;
-	
 	public RotatableRectanglePhysicsObject(double width, double height) {
 		super();
 		size = new Vector2D(width / 2d, height / 2d);
@@ -24,7 +22,6 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 		if (!isTouchingAABB(obj)) return false;
 		
 		if (!(obj instanceof RotatableRectanglePhysicsObject)) {
-			
 			// Check if any point on the outline is inside the obj
 			Vector2D[] outline = getOutlineVectors(0d);
 			double objRadiusSqr = obj.getRadius();
@@ -44,8 +41,6 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 		// rectangle is inside the other. It cannot detect crossed rectangles.
 		RotatableRectanglePhysicsObject obj1 = this;
 		RotatableRectanglePhysicsObject obj2 = (RotatableRectanglePhysicsObject)obj;
-		
-		updateAxes();
 		
 		Vector2D[] obj1OutlineVectors = obj1.getOutlineVectors(0d);
 		for (Vector2D vertex1 : obj1OutlineVectors) {
@@ -78,23 +73,10 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 	 * @return
 	 */
 	protected boolean isPointInside(Vector2D point) {
-		// Axis projection implementation:
-		/*Vector2D pointRel = point.difference(position);
-		return Math.abs(pointRel.dotProduct(xAxis)) <= size.x &&
-				Math.abs(pointRel.dotProduct(yAxis)) <= size.y;*/
-		
 		// Relative point implementation:
 		Vector2D pointRel = point.difference(position);
 		pointRel.rotate(-angle);
 		return Math.abs(pointRel.x) <= size.x && Math.abs(pointRel.y) <= size.y;
-	}
-	
-	/**
-	 * Update the unit vectors parallel to this rectangle.
-	 */
-	private void updateAxes() {
-		xAxis = new Vector2D(1d, angle, true);
-		yAxis = new Vector2D(-xAxis.y, xAxis.x);
 	}
 	
 	@Override

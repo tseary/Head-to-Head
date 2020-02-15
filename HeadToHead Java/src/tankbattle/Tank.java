@@ -19,7 +19,7 @@ public class Tank extends RotatableRectanglePhysicsObject implements IOwnable, I
 	
 	private Player owner;
 	
-	static final double bulletSpeed = 100d;
+	static final double bulletSpeed = 200d;
 	
 	private static final int fullHealth = 3;
 	private int health = fullHealth;
@@ -27,13 +27,17 @@ public class Tank extends RotatableRectanglePhysicsObject implements IOwnable, I
 	private static final int fullAmmo = 15;
 	private int ammo = fullAmmo;
 	
+	// Aestetic dimensions
+	private static final double barrelWidth = 2d,
+			barrelLength = 10d;
+	
 	/**
 	 * 
 	 * @param heading
 	 *            The heading angle in radians.
 	 */
 	public Tank(double angle, Player owner) {
-		super(34d, 19.6d);
+		super(30d, 20d);
 		this.angle = angle;
 		this.owner = owner;
 	}
@@ -55,6 +59,7 @@ public class Tank extends RotatableRectanglePhysicsObject implements IOwnable, I
 		// Unlimited ammo in debug mode
 		if (DebugMode.isEnabled() && ammo == 0) ammo = 1;
 		
+		// TODO Fix starting position to be just under the tip of the barrel
 		Bullet bullet = new Bullet(owner);
 		bullet.position = this.position
 				.sum(new Vector2D(getRadius() * 1.3d, angle, true));
@@ -91,21 +96,27 @@ public class Tank extends RotatableRectanglePhysicsObject implements IOwnable, I
 	@Override
 	public Polygon getOutline(double extrapolateTime) {
 		
-		// TODO Base these dimensions off of the size vector
+		final Vector2D corner3 = size,
+				corner2 = new Vector2D(corner3.x, 0.6d * corner3.y),
+				corner1 = new Vector2D(0.85d * corner2.x, corner2.y);
+		final Vector2D barrelBase = new Vector2D(corner1.x, barrelWidth / 2d);
+		final Vector2D barrelEnd = new Vector2D(barrelBase.x + barrelLength, barrelBase.y);
 		
-		final double cornerAngle1 = 0.165d * Math.PI;
-		final double cornerAngle2 = 0.138d * Math.PI;
-		final double cornerAngle3 = 0.20d * Math.PI;
+		final double cornerAngle1 = corner1.angle();
+		final double cornerAngle2 = corner2.angle();
+		final double cornerAngle3 = corner3.angle();
 		
-		final double cornerRadius1 = 0.762590d * getRadius();
-		final double cornerRadius2 = 0.892086d * getRadius();
-		final double cornerRadius3 = 1.000000d * getRadius();
+		final double cornerRadius1 = corner1.length();
+		final double cornerRadius2 = corner2.length();
+		final double cornerRadius3 = corner3.length();
 		
-		final double barrelBaseAngle = 0.025d * Math.PI;
-		final double barrelEndAngle = 0.015d * Math.PI;
+		final double barrelBaseAngle = barrelBase.angle();
+		final double barrelEndAngle = barrelEnd.angle();
 		
-		final double barrelBaseRadius = 0.669064d * getRadius();
-		final double barrelEndRadius = 1.151079d * getRadius();
+		final double barrelBaseRadius = barrelBase.length();
+		final double barrelEndRadius = barrelEnd.length();
+		
+		// TODO Clean up this redundant garbage
 		
 		Vector2D outlinePosition = IPolygon.extrapolatePosition(this, extrapolateTime);
 		

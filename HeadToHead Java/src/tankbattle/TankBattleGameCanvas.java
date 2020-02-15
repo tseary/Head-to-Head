@@ -482,7 +482,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	private void collideBulletToWall() {
 		for (Bullet bullet : bullets) {
 			for (Wall wall : walls) {
-				if (bullet.isTouching(wall)) {
+				if (wall.isTouching(bullet)) {
 					bullet.velocity = new Vector2D(0d, 0d);	// DEBUG
 				}
 				// wall.isInside(bullet.position);
