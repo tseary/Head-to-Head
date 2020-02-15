@@ -177,7 +177,7 @@ public class Vector2D {
 	 */
 	public void setLength(double length) {
 		double oldLength = this.length();
-		if (oldLength == 0.0)
+		if (oldLength == 0d)
 			return;
 		length /= oldLength;
 		this.x *= length;

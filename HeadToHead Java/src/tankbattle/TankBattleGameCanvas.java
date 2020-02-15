@@ -14,6 +14,7 @@ import blasteroids.Fragment;
 import blasteroids.ScoreMarker;
 import button.ArcadeButton;
 import button.IButton;
+import geometry.SpaceVector2D;
 import geometry.Vector2D;
 import headtohead.DebugMode;
 import headtohead.HeadToHeadGameCanvas;
@@ -678,11 +679,30 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 				g.drawPolygon(triangle);
 			}
 			
+			// DEBUG
 			// Draw a line connecting the tanks
 			if (DebugMode.isEnabled()) {
 				g.setColor(Color.BLUE);
 				g.drawLine((int)tanks[0].position.x, (int)tanks[0].position.y,
 						(int)tanks[1].position.x, (int)tanks[1].position.y);
+			}
+		}
+		
+		// DEBUG
+		// Draw lines demonstarting surface normals
+		if (DebugMode.isEnabled() && walls.size() >= 2) {
+			Wall wall = walls.get(1);
+			for (Bullet bullet : bullets) {
+				
+				SpaceVector2D surfaceNormal = wall.getSurfaceNormal(bullet.position);
+				
+				g.setColor(Color.RED);
+				g.drawLine((int)surfaceNormal.position.x, (int)surfaceNormal.position.y,
+						(int)bullet.position.x, (int)bullet.position.y);
+				g.setColor(Color.WHITE);
+				Vector2D normalVectorEnd = surfaceNormal.position.sum(surfaceNormal.vector.scalarProduct(30d));
+				g.drawLine((int)surfaceNormal.position.x, (int)surfaceNormal.position.y,
+						(int)normalVectorEnd.x, (int)normalVectorEnd.y);
 			}
 		}
 		

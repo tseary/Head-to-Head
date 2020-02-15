@@ -2,18 +2,28 @@ package physics;
 
 import java.awt.Polygon;
 
+import geometry.SpaceVector2D;
 import geometry.Vector2D;
 import headtohead.DebugMode;
 
 public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject implements IPolygon {
 	
+	/**
+	 * The size vector points from the center of the rectangle to the vertex
+	 * in the first quadrant, in this rectangle's coordinate space.
+	 */
 	protected Vector2D size;
 	protected double boundingRadius;
+	
+	// The angle spanned by the top face of the rectangle.
+	// The size vector rotated by this angle equals the size vector in quadrant 2.
+	private double sizeQuad2Angle;
 	
 	public RotatableRectanglePhysicsObject(double width, double height) {
 		super();
 		size = new Vector2D(width / 2d, height / 2d);
 		boundingRadius = size.length();
+		sizeQuad2Angle = new Vector2D(-size.x, size.y).angle() - size.angle();
 	}
 	
 	@Override
@@ -84,6 +94,104 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 		Vector2D pointRel = point.difference(position);
 		pointRel.rotate(-angle);
 		return Math.abs(pointRel.x) <= size.x && Math.abs(pointRel.y) <= size.y;
+	}
+	
+	/**
+	 * Creates a unit vector pointing from the surface of this rectangle to the point,
+	 * and a position vector indicating the nearest point on the surface to the given point.
+	 * @param point
+	 * @param outSurface A position vector indicating the closest point
+	 * @param outNormal
+	 */
+	public SpaceVector2D getSurfaceNormal(Vector2D point) {
+		// The object's position in this rectangle's coordinate space
+		Vector2D pointRel = point.difference(position).getRotated(-angle);
+		
+		boolean rightOutside = pointRel.x > size.x,
+				leftOutside = pointRel.x < -size.x;
+		boolean aboveOutside = pointRel.y > size.y,
+				belowOutside = pointRel.y < -size.y;
+		
+		SpaceVector2D surfaceNormal = new SpaceVector2D();
+		
+		if (rightOutside) {
+			// Right
+			if (aboveOutside) {
+				// Above right (quad 1)
+				surfaceNormal.position = position.sum(size.getRotated(angle));
+				surfaceNormal.vector = point.difference(surfaceNormal.position).toUnit();
+			} else if (belowOutside) {
+				// Below right (quad 4)
+				surfaceNormal.position = position.sum(size.getRotated(angle + Math.PI + sizeQuad2Angle));
+				surfaceNormal.vector = point.difference(surfaceNormal.position).toUnit();
+			} else {
+				// Right side
+				Vector2D surfacePosInRectCoords = new Vector2D(size.x, pointRel.y);
+				surfaceNormal.position = position.sum(surfacePosInRectCoords.getRotated(angle));
+				surfaceNormal.vector = new Vector2D(1d, angle, true);
+			}
+		} else if (leftOutside) {
+			// Left
+			if (aboveOutside) {
+				// Above left (quad 2)
+				surfaceNormal.position = position.sum(size.getRotated(angle + sizeQuad2Angle));
+				surfaceNormal.vector = point.difference(surfaceNormal.position).toUnit();
+			} else if (belowOutside) {
+				// Below left (quad 3)
+				surfaceNormal.position = position.sum(size.getRotated(angle + Math.PI));
+				surfaceNormal.vector = point.difference(surfaceNormal.position).toUnit();
+			} else {
+				// Left side
+				Vector2D surfacePosInRectCoords = new Vector2D(-size.x, pointRel.y);
+				surfaceNormal.position = position.sum(surfacePosInRectCoords.getRotated(angle));
+				surfaceNormal.vector = new Vector2D(-1d, angle, true);
+			}
+		} else {
+			// Middle x
+			if (aboveOutside) {
+				// Above middle
+				Vector2D surfacePosInRectCoords = new Vector2D(pointRel.x, size.y);
+				surfaceNormal.position = position.sum(surfacePosInRectCoords.getRotated(angle));
+				surfaceNormal.vector = new Vector2D(1d, angle + 0.5d * Math.PI, true);
+			} else if (belowOutside) {
+				// Below middle
+				Vector2D surfacePosInRectCoords = new Vector2D(pointRel.x, -size.y);
+				surfaceNormal.position = position.sum(surfacePosInRectCoords.getRotated(angle));
+				surfaceNormal.vector = new Vector2D(1d, angle - 0.5d * Math.PI, true);
+			} else {
+				// Inside rectangle
+				// TODO
+				/*boolean rightCenter = pointRel.x >= 0d,
+						aboveCenter = pointRel.y >= 0d;
+				
+				double distanceToXSide = size.x - Math.abs(pointRel.x),
+						distanceToYSide = size.y - Math.abs(pointRel.y);
+				
+				boolean closeToXSide = distanceToXSide < distanceToYSide;
+				if (closeToXSide) {
+					if (rightCenter) {
+						// TODO same as right side
+					} else {
+						// TODO same as left side
+					}
+				} else {
+					if (aboveCenter) {
+						// TODO same as top side
+					} else {
+						// TODO same as bottom side
+					}
+				}*/
+				
+				// PLACEHOLDER
+				// surfaceNormal position equals point,
+				// surfaceNormal vector points away from rectangle center
+				surfaceNormal.position = point.clone();
+				surfaceNormal.vector = point.difference(position).toUnit();
+			}
+		}
+		
+		return surfaceNormal;
+		
 	}
 	
 	@Override
