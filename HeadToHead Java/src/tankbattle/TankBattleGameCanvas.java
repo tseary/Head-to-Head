@@ -380,15 +380,25 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	
 	private void moveEverything(double deltaTime) {
 		// Move all spaceships
-		for (Tank spaceship : tanks) {
-			spaceship.move(deltaTime);
+		for (Tank tank : tanks) {
+			tank.move(deltaTime);
 			
 			// Clamp the speed
-			if (spaceship.velocity.length() > tankMaxSpeed) {
-				spaceship.velocity.setLength(tankMaxSpeed);
+			if (tank.velocity.length() > tankMaxSpeed) {
+				tank.velocity.setLength(tankMaxSpeed);
 			}
 			
-			spaceship.wrapPosition(getGameWidth(), getGameHeight());
+			// Choose a sound based on the velocity
+			double unitVelocity = tank.velocity.length() / tankMaxSpeed,
+					unitAngularVel = Math.abs(tank.angularVelocity) *
+							tankSteeringDrag / tankSteeringAccel;
+			double unitNoise = Math.max(unitVelocity, unitAngularVel);
+			int engineNoise = (int)Math.round(Math.min(Math.max(0, 3 * unitNoise), 3));
+			if (engineNoise > 0) {
+				requestSound("Engine" + engineNoise);
+			}
+			
+			tank.wrapPosition(getGameWidth(), getGameHeight());
 		}
 		
 		// Move bullets
@@ -557,7 +567,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	
 	private void tankDied(Tank tank) {
 		fragments.addAll(tank.getFragments());
-		requestSound("Crash");
+		requestSound("Explode");
 	}
 	
 	/**

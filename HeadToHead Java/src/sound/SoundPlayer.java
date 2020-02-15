@@ -21,6 +21,10 @@ public class SoundPlayer {
 		soundURLs.put("Crack", SoundPlayer.class.getResource("/soundfx/crack.wav"));
 		soundURLs.put("Crash", SoundPlayer.class.getResource("/soundfx/crash.wav"));
 		soundURLs.put("Hit", SoundPlayer.class.getResource("/soundfx/hit2.wav"));
+		soundURLs.put("Engine1", SoundPlayer.class.getResource("/soundfx/engine1.wav"));
+		soundURLs.put("Engine2", SoundPlayer.class.getResource("/soundfx/engine2.wav"));
+		soundURLs.put("Engine3", SoundPlayer.class.getResource("/soundfx/engine3.wav"));
+		soundURLs.put("Explode", SoundPlayer.class.getResource("/soundfx/explode.wav"));
 		soundURLs.put("GameOver", SoundPlayer.class.getResource("/soundfx/gameover3.wav"));
 		soundURLs.put("GameOverP0", SoundPlayer.class.getResource("/soundfx/rightwins.wav"));
 		soundURLs.put("GameOverP1", SoundPlayer.class.getResource("/soundfx/leftwins.wav"));
