@@ -19,7 +19,7 @@ public class Tank extends RotatableRectanglePhysicsObject implements IOwnable, I
 	
 	private Player owner;
 	
-	static final double bulletSpeed = 200d;
+	static final double bulletSpeed = 100d;
 	
 	private static final int fullHealth = 3;
 	private int health = fullHealth;

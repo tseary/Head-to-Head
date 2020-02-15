@@ -22,18 +22,25 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 		if (!isTouchingAABB(obj)) return false;
 		
 		if (!(obj instanceof RotatableRectanglePhysicsObject)) {
-			// Check if any point on the outline is inside the obj
-			Vector2D[] outline = getOutlineVectors(0d);
-			double objRadiusSqr = obj.getRadius();
-			objRadiusSqr *= objRadiusSqr;
-			for (Vector2D point : outline) {
-				if (point.difference(obj.position).lengthSquared() <= objRadiusSqr) {
-					return true;
-				}
+			// The object's position in this rectangle's coordinate space
+			Vector2D circleCenter = obj.position.difference(position).getRotated(-angle);
+			final double circleRadius = obj.getRadius();
+			
+			Vector2D wideSize = new Vector2D(size.x + circleRadius, size.y);
+			if (Math.abs(circleCenter.x) <= wideSize.x && Math.abs(circleCenter.y) <= wideSize.y) {
+				// Object is touching on the left or right ends of the rectangle, or in the middle
+				return true;
 			}
 			
-			// If the outline isn't touching, do cirle-circle collision detection
-			return isTouchingCircular(obj);
+			Vector2D tallSize = new Vector2D(size.x, size.y + circleRadius);
+			if (Math.abs(circleCenter.x) <= tallSize.x && Math.abs(circleCenter.y) <= tallSize.y) {
+				// Object is touching on the top or bottom of the rectangle, or in the middle
+				return true;
+			}
+			
+			// True if any vertex is inside the object's radius
+			Vector2D circleCenterAbs = new Vector2D(Math.abs(circleCenter.x), Math.abs(circleCenter.y));
+			return circleCenterAbs.difference(size).lengthSquared() <= circleRadius * circleRadius;
 		}
 		
 		// Do rotated rectangle-rectangle collision detection
