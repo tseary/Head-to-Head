@@ -20,6 +20,8 @@ public abstract class PhysicsObject {
 	
 	abstract public double getRadius();
 	
+	abstract public double getMass();
+	
 	public void move(double deltaTime) {
 		position.add(velocity.sum(acceleration.scalarProduct(deltaTime / 2d)).scalarProduct(deltaTime));
 		velocity.add(acceleration.scalarProduct(deltaTime));
@@ -90,23 +92,27 @@ public abstract class PhysicsObject {
 	}
 	
 	public boolean isTouching(PhysicsObject obj) {
-		double radiusSum = getRadius() + obj.getRadius();
-		
 		// Do AABB collision first
-		if (Math.abs(position.x - obj.position.x) > radiusSum ||
-				Math.abs(position.y - obj.position.y) > radiusSum) {
+		if (!isTouchingAABB(obj)) {
 			return false;
 		}
 		
 		// Do circle collision
+		return isTouchingCircular(obj);
+	}
+	
+	protected boolean isTouchingAABB(PhysicsObject obj) {
+		double radiusSum = getRadius() + obj.getRadius();
+		return Math.abs(position.x - obj.position.x) <= radiusSum &&
+				Math.abs(position.y - obj.position.y) <= radiusSum;
+	}
+	
+	protected boolean isTouchingCircular(PhysicsObject obj) {
+		double radiusSum = getRadius() + obj.getRadius();
 		return distanceSquaredTo(obj) <= radiusSum * radiusSum;
 	}
 	
 	public double distanceSquaredTo(PhysicsObject obj) {
 		return this.position.difference(obj.position).lengthSquared();
-	}
-	
-	public double getMass() {
-		return 1d;
 	}
 }

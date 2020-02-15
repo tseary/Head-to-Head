@@ -20,4 +20,9 @@ public class Bullet extends AgedPhysicsObject implements IOwnable {
 	public double getRadius() {
 		return 1d;
 	}
+	
+	@Override
+	public double getMass() {
+		return 1d;
+	}
 }

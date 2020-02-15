@@ -31,6 +31,11 @@ public class ScoreMarker extends AgedPhysicsObject implements IOwnable {
 	}
 	
 	@Override
+	public double getMass() {
+		return 0d;
+	}
+	
+	@Override
 	public Player getOwner() {
 		return owner;
 	}

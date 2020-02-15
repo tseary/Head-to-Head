@@ -50,7 +50,12 @@ public class Fragment extends RotatablePhysicsObject implements IOwnable, IPolyg
 	
 	@Override
 	public double getRadius() {
-		return 0;
+		return 0d;
+	}
+	
+	@Override
+	public double getMass() {
+		return 0d;
 	}
 	
 	@Override
@@ -62,4 +67,5 @@ public class Fragment extends RotatablePhysicsObject implements IOwnable, IPolyg
 	public String toString() {
 		return "Fragment, velocity = " + velocity.length();
 	}
+	
 }

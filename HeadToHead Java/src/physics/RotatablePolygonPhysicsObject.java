@@ -5,6 +5,7 @@ import java.awt.Polygon;
 import geometry.Vector2D;
 import headtohead.DebugMode;
 
+@Deprecated
 public abstract class RotatablePolygonPhysicsObject extends RotatablePhysicsObject implements IPolygon {
 	@Override
 	public boolean isTouching(PhysicsObject obj) {

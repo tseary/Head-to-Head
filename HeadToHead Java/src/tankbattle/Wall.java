@@ -1,36 +1,17 @@
 package tankbattle;
 
 import geometry.Vector2D;
-import physics.RotatablePolygonPhysicsObject;
+import physics.RotatableRectanglePhysicsObject;
 
-public class Wall extends RotatablePolygonPhysicsObject {
+public class Wall extends RotatableRectanglePhysicsObject {
 	
 	Vector2D[] outlineVectorsRelative;
 	
 	public Wall() {
-		outlineVectorsRelative = new Vector2D[] {
-				new Vector2D(40, 5),
-				new Vector2D(40, -5),
-				new Vector2D(-40, -5),
-				new Vector2D(-40, 5)
-		};
+		super(100d, 10d);
 	}
 	
 	public boolean isInside(Vector2D point) {
 		return false;
-	}
-	
-	@Override
-	public Vector2D[] getOutlineVectors(double extrapolateTime) {
-		Vector2D[] outlineVectors = new Vector2D[outlineVectorsRelative.length];
-		for (int i = 0; i < outlineVectors.length; i++) {
-			outlineVectors[i] = outlineVectorsRelative[i].getRotated(angle).sum(position);
-		}
-		return outlineVectors;
-	}
-	
-	@Override
-	public double getRadius() {
-		return outlineVectorsRelative[0].length();
 	}
 }

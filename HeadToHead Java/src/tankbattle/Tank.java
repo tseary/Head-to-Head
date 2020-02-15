@@ -13,9 +13,9 @@ import headtohead.IOwnable;
 import headtohead.IScorable;
 import headtohead.Player;
 import physics.IPolygon;
-import physics.RotatablePolygonPhysicsObject;
+import physics.RotatableRectanglePhysicsObject;
 
-public class Tank extends RotatablePolygonPhysicsObject implements IOwnable, IPolygon, IScorable {
+public class Tank extends RotatableRectanglePhysicsObject implements IOwnable, IScorable {
 	
 	private Player owner;
 	
@@ -33,6 +33,7 @@ public class Tank extends RotatablePolygonPhysicsObject implements IOwnable, IPo
 	 *            The heading angle in radians.
 	 */
 	public Tank(double angle, Player owner) {
+		super(34d, 19.6d);
 		this.angle = angle;
 		this.owner = owner;
 	}
@@ -88,24 +89,27 @@ public class Tank extends RotatablePolygonPhysicsObject implements IOwnable, IPo
 	}
 	
 	@Override
-	public Vector2D[] getOutlineVectors(double extrapolateTime) {
+	public Polygon getOutline(double extrapolateTime) {
+		
+		// TODO Base these dimensions off of the size vector
+		
 		final double cornerAngle1 = 0.165d * Math.PI;
 		final double cornerAngle2 = 0.138d * Math.PI;
 		final double cornerAngle3 = 0.20d * Math.PI;
 		
-		final double cornerRadius1 = 1.06d * getRadius();
-		final double cornerRadius2 = 1.24d * getRadius();
-		final double cornerRadius3 = 1.39d * getRadius();
+		final double cornerRadius1 = 0.762590d * getRadius();
+		final double cornerRadius2 = 0.892086d * getRadius();
+		final double cornerRadius3 = 1.000000d * getRadius();
 		
 		final double barrelBaseAngle = 0.025d * Math.PI;
 		final double barrelEndAngle = 0.015d * Math.PI;
 		
-		final double barrelBaseRadius = 0.93d * getRadius();
-		final double barrelEndRadius = 1.60d * getRadius();
+		final double barrelBaseRadius = 0.669064d * getRadius();
+		final double barrelEndRadius = 1.151079d * getRadius();
 		
 		Vector2D outlinePosition = IPolygon.extrapolatePosition(this, extrapolateTime);
 		
-		return new Vector2D[] {
+		Vector2D[] outlineVectors = new Vector2D[] {
 				outlinePosition.sum(new Vector2D(barrelBaseRadius, angle - barrelBaseAngle, true)),	// Barrel
 				outlinePosition.sum(new Vector2D(barrelEndRadius, angle - barrelEndAngle, true)),
 				outlinePosition.sum(new Vector2D(barrelEndRadius, angle + barrelEndAngle, true)),
@@ -126,11 +130,8 @@ public class Tank extends RotatablePolygonPhysicsObject implements IOwnable, IPo
 				outlinePosition.sum(new Vector2D(cornerRadius3, angle - cornerAngle3, true)),	// Front right
 				outlinePosition.sum(new Vector2D(cornerRadius2, angle - cornerAngle2, true)),
 				outlinePosition.sum(new Vector2D(cornerRadius1, angle - cornerAngle1, true)) };
-	}
-	
-	@Override
-	public Polygon getOutline(double extrapolateTime) {
-		return IPolygon.vectorsToPolygon(getOutlineVectors(extrapolateTime));
+		
+		return IPolygon.vectorsToPolygon(outlineVectors);
 	}
 	
 	/**
@@ -197,11 +198,6 @@ public class Tank extends RotatablePolygonPhysicsObject implements IOwnable, IPo
 		}
 		
 		return fragments;
-	}
-	
-	@Override
-	public double getRadius() {
-		return 12d;
 	}
 	
 	@Override
