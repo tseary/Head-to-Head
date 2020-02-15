@@ -100,8 +100,7 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 	 * Creates a unit vector pointing from the surface of this rectangle to the point,
 	 * and a position vector indicating the nearest point on the surface to the given point.
 	 * @param point
-	 * @param outSurface A position vector indicating the closest point
-	 * @param outNormal
+	 * @return The returned vector is guaranteed non-zero.
 	 */
 	public SpaceVector2D getSurfaceNormal(Vector2D point) {
 		// The object's position in this rectangle's coordinate space

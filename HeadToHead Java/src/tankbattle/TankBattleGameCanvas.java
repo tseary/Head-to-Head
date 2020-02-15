@@ -484,9 +484,17 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		for (Bullet bullet : bullets) {
 			for (Wall wall : walls) {
 				if (wall.isTouching(bullet)) {
-					bullet.velocity = new Vector2D(0d, 0d);	// DEBUG
+					// Get the normal vector from the wall to the bullet
+					SpaceVector2D surfaceNormal = wall.getSurfaceNormal(bullet.position);
+					
+					// Reflect the velocity off the normal
+					Vector2D v1 = bullet.velocity,
+							v2 = surfaceNormal.vector;
+					double k = (v1.dotProduct(v2)) / (v2.dotProduct(v2));
+					Vector2D vRefl = v1.scalarProduct(-1d).sum(v2.scalarProduct(2d * k));
+					
+					bullet.velocity = vRefl;
 				}
-				// wall.isInside(bullet.position);
 			}
 		}
 	}
@@ -642,6 +650,24 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 			drawPolygon(g, tank, extrapolate);
 		}
 		
+		// DEBUG
+		// Draw lines demonstarting surface normals
+		/*if (DebugMode.isEnabled() && walls.size() >= 2) {
+			Wall wall = walls.get(1);
+			for (Bullet bullet : bullets) {
+				
+				SpaceVector2D surfaceNormal = wall.getSurfaceNormal(bullet.position);
+				
+				g.setColor(Color.GREEN);
+				g.drawLine((int)surfaceNormal.position.x, (int)surfaceNormal.position.y,
+						(int)bullet.position.x, (int)bullet.position.y);
+				g.setColor(Color.RED);
+				Vector2D normalVectorEnd = surfaceNormal.position.sum(surfaceNormal.vector.scalarProduct(30d));
+				g.drawLine((int)surfaceNormal.position.x, (int)surfaceNormal.position.y,
+						(int)normalVectorEnd.x, (int)normalVectorEnd.y);
+			}
+		}*/
+		
 		// Draw the bullets
 		for (Bullet bullet : bullets) {
 			g.setColor(getOwnerColor(bullet));
@@ -685,24 +711,6 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 				g.setColor(Color.BLUE);
 				g.drawLine((int)tanks[0].position.x, (int)tanks[0].position.y,
 						(int)tanks[1].position.x, (int)tanks[1].position.y);
-			}
-		}
-		
-		// DEBUG
-		// Draw lines demonstarting surface normals
-		if (DebugMode.isEnabled() && walls.size() >= 2) {
-			Wall wall = walls.get(1);
-			for (Bullet bullet : bullets) {
-				
-				SpaceVector2D surfaceNormal = wall.getSurfaceNormal(bullet.position);
-				
-				g.setColor(Color.RED);
-				g.drawLine((int)surfaceNormal.position.x, (int)surfaceNormal.position.y,
-						(int)bullet.position.x, (int)bullet.position.y);
-				g.setColor(Color.WHITE);
-				Vector2D normalVectorEnd = surfaceNormal.position.sum(surfaceNormal.vector.scalarProduct(30d));
-				g.drawLine((int)surfaceNormal.position.x, (int)surfaceNormal.position.y,
-						(int)normalVectorEnd.x, (int)normalVectorEnd.y);
 			}
 		}
 		
