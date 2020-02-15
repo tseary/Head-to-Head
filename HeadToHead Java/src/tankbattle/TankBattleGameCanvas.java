@@ -7,6 +7,7 @@ import java.awt.Polygon;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import blasteroids.Bullet;
@@ -179,13 +180,32 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		scoreMarkers.clear();
 		
 		// Place walls
-		for (int i = 0; i < 3; i++) {
+		Random random = new Random();
+		for (int i = 0; i < 20; i++) {
+			// Choose a random wall postion, not to close to any tanks
+			Vector2D wallPosition;
+			double minDistanceSqrToTank;
+			do {
+				// Choose a random wall position
+				wallPosition = new Vector2D(random.nextDouble() * getGameWidth(),
+						random.nextDouble() * getGameHeight());
+				
+				// Calculate the distance to the closest tank
+				minDistanceSqrToTank = Double.MAX_VALUE;
+				for (Tank tank : tanks) {
+					double distanceSqr = tank.position.difference(wallPosition).lengthSquared();
+					minDistanceSqrToTank = Math.min(minDistanceSqrToTank, distanceSqr);
+				}
+			} while (minDistanceSqrToTank < 10000d);
+			
+			// Create the wall
 			Wall wall = new Wall();
-			wall.position.x = 100d * i + 50d;
-			wall.position.y = 150d * i + 100d;
-			if (i == 1) {
-				wall.angle = Math.PI / 4d;
-			}
+			wall.position = wallPosition;
+			
+			// Rotate the wall randomly
+			int wallAngle = random.nextInt(4);
+			wall.angle = wallAngle * Math.PI / 4d;
+			
 			walls.add(wall);
 		}
 		
@@ -637,7 +657,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		
 		// Draw the walls
 		for (Wall wall : walls) {
-			g.setColor(Color.GRAY);
+			g.setColor(Color.LIGHT_GRAY);
 			drawPolygon(g, wall, extrapolate);
 		}
 		
