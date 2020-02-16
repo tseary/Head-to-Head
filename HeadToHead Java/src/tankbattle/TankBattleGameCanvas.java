@@ -192,7 +192,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		
 		do {
 			// Create building
-			// Choose a random position, not to close to any tanks
+			// Choose a random position, not too close to any tanks
 			Vector2D buildingCenter = randomPositionNotNearTank(random, 100d);
 			
 			// Rotate the building randomly
@@ -482,11 +482,11 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 					continue;
 				}
 				
-				// Tank is touching wall
-				// Janky "push off" implementation results in weird lack of friction
-				// TODO Calculate normal force or something
-				tank.position = wall.position.sum(
-						tank.position.difference(wall.position).scalarProduct(1.05d));
+				// Tank is touching wall - push off in the normal direction
+				SpaceVector2D surfaceNormal = wall.getSurfaceNormal(tank.position);
+				tank.position.add(surfaceNormal.vector);
+				
+				// Stop tank
 				tank.velocity = new Vector2D(0d, 0d);
 			}
 		}
