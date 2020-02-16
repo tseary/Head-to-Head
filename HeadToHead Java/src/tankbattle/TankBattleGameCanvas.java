@@ -173,40 +173,62 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		scoreMarkers.clear();
 		
 		// Place walls
-		Random random = new Random();
-		for (int i = 0; i < 20; i++) {
-			// Choose a random wall postion, not to close to any tanks
-			Vector2D wallPosition;
-			double minDistanceSqrToTank;
-			do {
-				// Choose a random wall position
-				wallPosition = new Vector2D(random.nextDouble() * getGameWidth(),
-						random.nextDouble() * getGameHeight());
-				
-				// Calculate the distance to the closest tank
-				minDistanceSqrToTank = Double.MAX_VALUE;
-				for (Tank tank : tanks) {
-					double distanceSqr = tank.position.difference(wallPosition).lengthSquared();
-					minDistanceSqrToTank = Math.min(minDistanceSqrToTank, distanceSqr);
-				}
-			} while (minDistanceSqrToTank < 10000d);
-			
-			// Create the wall
-			Wall wall = new Wall(80d);
-			wall.position = wallPosition;
-			
-			// Rotate the wall randomly
-			int wallAngle = random.nextInt(4);
-			wall.angle = wallAngle * Math.PI / 4d;
-			
-			walls.add(wall);
-		}
+		createWalls();
 		
 		// Reset the round counters
 		roundStartCounter = 0;
 		roundOverCounter = 0;
 		
 		round++;
+	}
+	
+	private void createWalls() {
+		Random random = new Random();
+		
+		final int MINIMUM_WALLS = 15;
+		final double wallLength = 100d,
+				wallWidth = 10d,
+				wallSpacing = (wallLength - wallWidth) / 2d;
+		
+		do {
+			// Create building
+			// Choose a random position, not to close to any tanks
+			Vector2D buildingCenter = randomPositionNotNearTank(random, 100d);
+			
+			// Rotate the building randomly
+			int angleIndex = random.nextInt(6);
+			double buildingAngle = angleIndex * Math.PI / 6d;
+			
+			// Create walls
+			for (int i = 0; i < 3; i++) {
+				Wall wall = new Wall(random.nextDouble() < 0.30d ? wallLength / 2d : wallLength, wallWidth);
+				double angle = buildingAngle + i * Math.PI / 2d;
+				wall.position = buildingCenter.sum(
+						new Vector2D(wallSpacing, angle, true));
+				wall.angle = angle + Math.PI / 2d;
+				walls.add(wall);
+			}
+			
+		} while (walls.size() < MINIMUM_WALLS);
+	}
+	
+	private Vector2D randomPositionNotNearTank(Random random, double clearance) {
+		Vector2D position;
+		double minDistanceSqrToTank,
+				clearanceSqr = clearance * clearance;
+		do {
+			// Choose a random wall position
+			position = new Vector2D(random.nextDouble() * getGameWidth(),
+					random.nextDouble() * getGameHeight());
+			
+			// Calculate the distance to the closest tank
+			minDistanceSqrToTank = Double.MAX_VALUE;
+			for (Tank tank : tanks) {
+				double distanceSqr = tank.position.difference(position).lengthSquared();
+				minDistanceSqrToTank = Math.min(minDistanceSqrToTank, distanceSqr);
+			}
+		} while (minDistanceSqrToTank < clearanceSqr);
+		return position;
 	}
 	
 	/**
