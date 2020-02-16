@@ -387,6 +387,8 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 				sound.request(SoundName.ENGINE_2);
 			} else if (unitNoise > 0.2d) {
 				sound.request(SoundName.ENGINE_1);
+			} else if (tank.isAlive()) {
+				sound.request(SoundName.ENGINE_IDLE);
 			}
 			
 			tank.wrapPosition(getGameWidth(), getGameHeight());

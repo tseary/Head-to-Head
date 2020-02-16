@@ -16,6 +16,11 @@ public abstract class VoiceSet implements LineListener {
 	 */
 	public abstract void play();
 	
+	/**
+	 * Stop playing the sound on all voices.
+	 */
+	public abstract void stop();
+	
 	@Override
 	public void update(LineEvent event) {
 		// Ignore everything except stop events

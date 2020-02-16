@@ -16,6 +16,10 @@ public class MultiVoiceSet extends VoiceSet {
 		voices = new ArrayList<Clip>();
 	}
 	
+	/**
+	 * If a sound is already playing and needs to be played again simultaneously,
+	 * a new instance of the clip is loaded and played.
+	 */
 	public void play() {
 		// Find a voice that isn't in use and start it
 		for (Clip voice : voices) {
@@ -27,6 +31,13 @@ public class MultiVoiceSet extends VoiceSet {
 		
 		// No voices were available, so make another one and start it
 		addVoiceAndStart();
+	}
+	
+	@Override
+	public void stop() {
+		for (Clip voice : voices) {
+			voice.stop();
+		}
 	}
 	
 	private void addVoiceAndStart() {
