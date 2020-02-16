@@ -19,7 +19,6 @@ public class SoundPlayer {
 	
 	private boolean soundOn = true;
 	
-	@SuppressWarnings("unchecked")
 	public SoundPlayer() {
 		SoundName[] values = SoundName.values();
 		
@@ -29,7 +28,8 @@ public class SoundPlayer {
 		voiceSets = new VoiceSet[values.length];
 		
 		for (SoundName value : values) {
-			String path = "/soundfx/" + value.name() + ".wav";
+			// Note: URL path is case-sensitive in exported jar
+			String path = "/soundfx/" + value.name().toLowerCase() + ".wav";
 			soundURLs[value.ordinal()] = SoundPlayer.class.getResource(path);
 			if (soundURLs[value.ordinal()] == null) {
 				System.out.println("Failed to load sound URL \"" + path + "\"");

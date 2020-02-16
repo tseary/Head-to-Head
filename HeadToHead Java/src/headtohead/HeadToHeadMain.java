@@ -16,7 +16,7 @@ import tankbattle.TankBattleGameCanvas;
 public class HeadToHeadMain {
 	
 	public static void main(String[] args) {
-		JFrame frame = new JFrame("Head to Head v0.37");
+		JFrame frame = new JFrame("Head to Head v0.36");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		HeadToHeadGameCanvas gameCanvas;
