@@ -15,7 +15,6 @@ import button.ArcadeButton;
 import button.IButton;
 import geometry.SpaceVector2D;
 import geometry.Vector2D;
-import headtohead.DebugMode;
 import headtohead.HeadToHeadGameCanvas;
 import headtohead.IOwnable;
 import headtohead.IScorable;
@@ -117,8 +116,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	
 	@Override
 	protected int[] getLeftHandedButtonRemap() {
-		// TODO
-		return new int[] { 1, 2, 0 };
+		return new int[] { 0, 1, 2 };
 	}
 	
 	@Override
@@ -536,17 +534,13 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 			for (int i = 0; i < bullets.size(); i++) {
 				Bullet bullet = bullets.get(i);
 				
-				// No friendly fire
-				if (bullet.getOwner() == tank.getOwner()) {
-					continue;
-				}
-				
-				// Bullet hits the spaceship
-				if (bullet.isTouching(tank)) {
+				// Bullet hits the tank
+				if (tank.isTouching(bullet)) {
 					tank.takeHit();
 					
 					// Bullet owner gets points
-					givePoints(bullet, tank);
+					// (or loses point for friendly fire)
+					scorePoints(bullet, tank);
 					
 					if (tank.isAlive()) {
 						sound.request(SoundName.PWANK_E);
@@ -567,38 +561,30 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		sound.request(SoundName.EXPLODE);
 	}
 	
-	private void givePoints(IOwnable playerObj, IScorable scoreObj) {
+	private void scorePoints(IOwnable playerObj, IScorable scoreObj) {
 		Player owner = playerObj.getOwner();
 		if (owner == null) {
 			return;
 		}
 		
+		// Determine if the player scored against themself
+		boolean friendlyFire = false;
+		if (scoreObj instanceof IOwnable) {
+			Player scoredAgainst = ((IOwnable)scoreObj).getOwner();
+			friendlyFire = owner == scoredAgainst;	// Self-own
+		}
+		
 		// Add points and update score marker
 		int score = scoreObj.getScore();
+		if (friendlyFire) score = -score;
+		
 		setPlayerScore(owner, owner.score + score);
 		
 		// Create a score marker if the object is physical
 		if (scoreObj instanceof PhysicsObject) {
 			PhysicsObject physicsObj = (PhysicsObject)scoreObj;
 			scoreMarkers.add(new ScoreMarker(String.valueOf(score),
-					physicsObj.position, owner, isPlayerInverted(owner)));
-		}
-	}
-	
-	private void takePoints(IOwnable playerObj, IScorable scoreObj, PhysicsObject physicsObj) {
-		Player owner = playerObj.getOwner();
-		if (owner == null) {
-			return;
-		}
-		
-		// Subtract points and update score marker
-		int score = -scoreObj.getScore() / 2;
-		setPlayerScore(owner, owner.score + score);
-		
-		// Create a score marker if the object is physical
-		if (physicsObj != null) {
-			scoreMarkers.add(new ScoreMarker(String.valueOf(score),
-					physicsObj.position, null/*owner*/, isPlayerInverted(owner)));
+					physicsObj.position, friendlyFire ? null : owner, isPlayerInverted(owner)));
 		}
 	}
 	
@@ -713,23 +699,22 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 			
 			for (int h = 0; h < tanks[i].getHealth(); h++) {
 				int xHealth = xPerHealth * h;
-				Polygon triangle = new Polygon(
+				Polygon rectangle = new Polygon(
 						new int[] { xFirst + xHealth,
 								xFirst + xHealth,
 								xFirst + rectWidth + xHealth,
 								xFirst + rectWidth + xHealth },
 						new int[] { yBack, yFront, yFront, yBack }, 4);
-				// g.fillPolygon(triangle);
-				g.drawPolygon(triangle);
+				g.drawPolygon(rectangle);
 			}
 			
 			// DEBUG
 			// Draw a line connecting the tanks
-			if (DebugMode.isEnabled()) {
+			/*if (DebugMode.isEnabled()) {
 				g.setColor(Color.BLUE);
 				g.drawLine((int)tanks[0].position.x, (int)tanks[0].position.y,
 						(int)tanks[1].position.x, (int)tanks[1].position.y);
-			}
+			}*/
 		}
 		
 		// Draw ammo markers
@@ -887,12 +872,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	
 	private static void drawScoreMarker(Graphics g, ScoreMarker scoreMarker) {
 		// Set the color
-		Player owner = scoreMarker.getOwner();
-		if (owner != null) {
-			g.setColor(owner.getColor());
-		} else {
-			g.setColor(Color.WHITE);
-		}
+		g.setColor(getOwnerColor(scoreMarker));
 		
 		// Center the text
 		int xOffset = g.getFontMetrics().stringWidth(scoreMarker.value) / 2,
