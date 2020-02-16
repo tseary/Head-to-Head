@@ -207,8 +207,6 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		roundOverCounter = 0;
 		
 		round++;
-		
-		sound.printVoiceStatistics();
 	}
 	
 	/**
