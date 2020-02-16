@@ -59,12 +59,12 @@ public class Tank extends RotatableRectanglePhysicsObject implements IOwnable, I
 		// Unlimited ammo in debug mode
 		if (DebugMode.isEnabled() && ammo == 0) ammo = 1;
 		
-		// TODO Fix starting position to be just under the tip of the barrel
+		// Starting position is front of tank + 1.5 * bullet radius
 		Bullet bullet = new Bullet(owner);
-		bullet.position = this.position
-				.sum(new Vector2D(getRadius() * 1.3d, angle, true));
-		bullet.velocity = this.velocity
-				.sum(new Vector2D(bulletSpeed, angle, true));
+		Vector2D forwardUnit = new Vector2D(1d, angle, true);
+		bullet.position = this.position.sum(forwardUnit.scalarProduct(
+				size.x + 1.5d * bullet.getRadius()));
+		bullet.velocity = this.velocity.sum(forwardUnit.scalarProduct(bulletSpeed));
 		return bullet;
 	}
 	

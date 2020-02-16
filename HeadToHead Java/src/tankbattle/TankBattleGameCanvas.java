@@ -36,7 +36,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	private static final double tankDrag = 2d;
 	private static final double tankSteeringAccel = 8d;
 	private static final double tankSteeringDrag = 6d;
-	private static final double bulletMaxAge = 2.333d;
+	private static final double bulletMaxAge = 3.333d;
 	protected double deltaTimeAlive;
 	protected double deltaTimeDead;
 	
@@ -81,6 +81,8 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		walls = new ArrayList<Wall>();
 		bullets = new ArrayList<Bullet>();
 		fragments = new ArrayList<Fragment>();
+		
+		Bullet.setRadius(2d);
 		
 		lastShotCounters = new int[players.length];
 		shootWasPressed = new boolean[players.length];
@@ -192,7 +194,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 			} while (minDistanceSqrToTank < 10000d);
 			
 			// Create the wall
-			Wall wall = new Wall();
+			Wall wall = new Wall(80d);
 			wall.position = wallPosition;
 			
 			// Rotate the wall randomly
@@ -513,13 +515,12 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 					// Reflect the velocity about the normal
 					Vector2D v1 = bullet.velocity,
 							v2 = surfaceNormal.vector;
-					double k = (v1.dotProduct(v2)) / (v2.dotProduct(v2));
-					Vector2D vRefl = v1.scalarProduct(-1d).sum(v2.scalarProduct(2d * k));
-					
-					bullet.velocity = vRefl;
+					double k = v1.dotProduct(v2) / v2.dotProduct(v2);
+					bullet.velocity.add(v2.scalarProduct(-2d * k));
 					
 					// Put the bullet on the surface of the wall
-					// bullet.position = surfaceNormal.position;
+					bullet.position = surfaceNormal.position.sum(
+							surfaceNormal.vector.scalarProduct(bullet.getRadius()));
 				}
 			}
 		}
