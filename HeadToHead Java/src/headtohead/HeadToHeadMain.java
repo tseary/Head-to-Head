@@ -16,11 +16,14 @@ import tankbattle.TankBattleGameCanvas;
 public class HeadToHeadMain {
 	
 	public static void main(String[] args) {
-		JFrame frame = new JFrame("Head to Head v0.36");
+		JFrame frame = new JFrame("Head to Head v0.37");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		HeadToHeadGameCanvas gameCanvas;
 		if (!DebugMode.isEnabled()) {
+			// Default to Blasteroids
+			gameCanvas = new BlasteroidsGameCanvas();
+		} else {
 			GameSelectionCanvas gameSelector = createGameSelectionCanvas();
 			
 			addGameCanvas(frame, gameSelector);
@@ -53,8 +56,6 @@ public class HeadToHeadMain {
 					break;
 			}
 			gameSelector = null;
-		} else {
-			gameCanvas = new TankBattleGameCanvas();
 		}
 		
 		// Set up the selected game
