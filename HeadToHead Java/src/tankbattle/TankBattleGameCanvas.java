@@ -510,13 +510,16 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 					// Get the normal vector from the wall to the bullet
 					SpaceVector2D surfaceNormal = wall.getSurfaceNormal(bullet.position);
 					
-					// Reflect the velocity off the normal
+					// Reflect the velocity about the normal
 					Vector2D v1 = bullet.velocity,
 							v2 = surfaceNormal.vector;
 					double k = (v1.dotProduct(v2)) / (v2.dotProduct(v2));
 					Vector2D vRefl = v1.scalarProduct(-1d).sum(v2.scalarProduct(2d * k));
 					
 					bullet.velocity = vRefl;
+					
+					// Put the bullet on the surface of the wall
+					// bullet.position = surfaceNormal.position;
 				}
 			}
 		}

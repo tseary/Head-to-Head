@@ -9,7 +9,7 @@ import javax.sound.sampled.Clip;
 public class MultiVoiceSet extends VoiceSet {
 	
 	private URL url;
-	private List<Clip> voices;
+	private List<Clip> voices;	// Members are guaranteed non-null
 	
 	public MultiVoiceSet(URL url) {
 		this.url = url;
