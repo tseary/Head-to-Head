@@ -5,10 +5,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 
 import blasteroids.Bullet;
 import blasteroids.Fragment;
@@ -24,6 +22,7 @@ import headtohead.IScorable;
 import headtohead.Player;
 import physics.IPolygon;
 import physics.PhysicsObject;
+import sound.SoundName;
 
 // TODO Add trees as visual cover and walls (buildings) as physical cover
 
@@ -67,10 +66,6 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	protected int[] lastShotCounters;
 	protected boolean[] shootWasPressed;
 	
-	// Sound
-	protected boolean soundOn = true;
-	protected Set<String> soundRequests;
-	
 	// Score/text
 	private static final double scoreMarkerMaxAge = 0.5d;
 	/** Ephemeral markers that show points as they are earned. */
@@ -89,8 +84,6 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		
 		lastShotCounters = new int[players.length];
 		shootWasPressed = new boolean[players.length];
-		
-		soundRequests = new HashSet<String>();
 		
 		scoreMarkers = new ArrayList<ScoreMarker>();
 	}
@@ -176,7 +169,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		walls.clear();
 		bullets.clear();
 		fragments.clear();
-		soundRequests.clear();
+		sound.clearRequests();
 		scoreMarkers.clear();
 		
 		// Place walls
@@ -244,12 +237,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 			}
 			
 			// Play all the sounds that were requested during this tick
-			if (soundOn) {
-				for (String soundName : soundRequests) {
-					sound.playSound(soundName);
-				}
-			}
-			soundRequests.clear();
+			sound.playRequestedSounds();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			newGame();
@@ -321,7 +309,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 				
 				// Play the game over sound once
 				if (!gameOverSoundPlayed) {
-					requestSound("GameOver");
+					sound.request(SoundName.GAMEOVER);
 					gameOverSoundPlayed = true;
 				}
 			} else {
@@ -394,11 +382,11 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 							tankSteeringDrag / tankSteeringAccel;
 			double unitNoise = Math.max(unitVelocity, unitAngularVel);
 			if (unitNoise > 0.9d) {
-				requestSound("Engine3");
+				sound.request(SoundName.ENGINE_3);
 			} else if (unitNoise > 0.5d) {
-				requestSound("Engine2");
+				sound.request(SoundName.ENGINE_2);
 			} else if (unitNoise > 0.2d) {
-				requestSound("Engine1");
+				sound.request(SoundName.ENGINE_1);
 			}
 			
 			tank.wrapPosition(getGameWidth(), getGameHeight());
@@ -452,7 +440,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 				Bullet shot = tanks[i].shoot();
 				if (shot != null) {
 					bullets.add(shot);
-					requestSound("PwankC");
+					sound.request(SoundName.PWANK_C);
 				}
 				lastShotCounters[i] = shotCounter;
 			}
@@ -555,7 +543,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 					givePoints(bullet, tank);
 					
 					if (tank.isAlive()) {
-						requestSound("PwankE");
+						sound.request(SoundName.PWANK_E);
 					} else {
 						tankDied(tank);
 					}
@@ -570,16 +558,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	
 	private void tankDied(Tank tank) {
 		fragments.addAll(tank.getFragments());
-		requestSound("Explode");
-	}
-	
-	/**
-	 * Adds a sound to the set of sound requests.
-	 * 
-	 * @param soundName
-	 */
-	private void requestSound(String soundName) {
-		soundRequests.add(soundName);
+		sound.request(SoundName.EXPLODE);
 	}
 	
 	private void givePoints(IOwnable playerObj, IScorable scoreObj) {

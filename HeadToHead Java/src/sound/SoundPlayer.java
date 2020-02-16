@@ -1,8 +1,6 @@
 package sound;
 
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -10,38 +8,66 @@ import javax.sound.sampled.Clip;
 
 public class SoundPlayer {
 	
-	private Map<String, URL> soundURLs;
+	private URL[] soundURLs;
+	private boolean[] soundRequests;
+	
+	private boolean soundOn = true;
 	
 	public SoundPlayer() {
-		soundURLs = new HashMap<String, URL>();
+		SoundName[] values = SoundName.values();
 		
-		soundURLs.put("Pew", SoundPlayer.class.getResource("/soundfx/pew150ms.wav"));
-		soundURLs.put("Bounce", SoundPlayer.class.getResource("/soundfx/bounce.wav"));
-		soundURLs.put("Bump", SoundPlayer.class.getResource("/soundfx/bump.wav"));
-		soundURLs.put("Crack", SoundPlayer.class.getResource("/soundfx/crack.wav"));
-		soundURLs.put("Crash", SoundPlayer.class.getResource("/soundfx/crash.wav"));
-		soundURLs.put("Hit", SoundPlayer.class.getResource("/soundfx/hit2.wav"));
-		soundURLs.put("Engine1", SoundPlayer.class.getResource("/soundfx/engine1.wav"));
-		soundURLs.put("Engine2", SoundPlayer.class.getResource("/soundfx/engine2.wav"));
-		soundURLs.put("Engine3", SoundPlayer.class.getResource("/soundfx/engine3.wav"));
-		soundURLs.put("Explode", SoundPlayer.class.getResource("/soundfx/explode.wav"));
-		soundURLs.put("GameOver", SoundPlayer.class.getResource("/soundfx/gameover3.wav"));
-		soundURLs.put("GameOverP0", SoundPlayer.class.getResource("/soundfx/rightwins.wav"));
-		soundURLs.put("GameOverP1", SoundPlayer.class.getResource("/soundfx/leftwins.wav"));
-		soundURLs.put("PwankC", SoundPlayer.class.getResource("/soundfx/pwankc.wav"));
-		soundURLs.put("PwankE", SoundPlayer.class.getResource("/soundfx/pwanke.wav"));
+		soundRequests = new boolean[values.length];
+		soundURLs = new URL[values.length];
+		
+		for (SoundName value : values) {
+			String path = "/soundfx/" + value.name() + ".wav";
+			soundURLs[value.ordinal()] = SoundPlayer.class.getResource(path);
+			if (soundURLs[value.ordinal()] == null) {
+				System.out.println("Failed to load sound URL \"" + path + "\"");
+			}
+		}
 	}
 	
-	public void playSound(String soundName) {
+	public void setSoundOn(boolean soundOn) {
+		this.soundOn = soundOn;
+	}
+	
+	public void clearRequests() {
+		for (int i = 0; i < soundRequests.length; i++) {
+			soundRequests[i] = false;
+		}
+	}
+	
+	public void request(SoundName soundName) {
+		if (soundOn) soundRequests[soundName.ordinal()] = true;
+	}
+	
+	public void playRequestedSounds() {
+		if (!soundOn) {
+			clearRequests();
+			return;
+		}
+		for (int i = 0; i < soundRequests.length; i++) {
+			if (!soundRequests[i]) continue;
+			playSound(i);
+			soundRequests[i] = false;
+		}
+	}
+	
+	public void playSound(SoundName soundName) {
+		playSound(soundName.ordinal());
+	}
+	
+	public void playSound(int soundIndex) {
 		// Fail if the sound doesn't exist
-		if (!soundURLs.containsKey(soundName)) {
-			System.err.println("Sound doesn't exist: \"" + soundName + "\"");
+		if (soundIndex < 0 || soundIndex > soundURLs.length) {
+			System.err.println("Sound doesn't exist: " + soundIndex);
 			return;
 		}
 		
 		try {
 			// Load the URL
-			AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundURLs.get(soundName));
+			AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundURLs[soundIndex]);
 			
 			// Get a sound clip resource.
 			Clip clip = AudioSystem.getClip();

@@ -1,0 +1,19 @@
+package sound;
+
+public enum SoundName {
+	BOUNCE,
+	BUMP,
+	CRACK,
+	CRASH,
+	ENGINE_1,
+	ENGINE_2,
+	ENGINE_3,
+	EXPLODE,
+	GAMEOVER,
+	GAMEOVER_P0,
+	GAMEOVER_P1,
+	HIT,
+	PEW,
+	PWANK_C,
+	PWANK_E;
+}

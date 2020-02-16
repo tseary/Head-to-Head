@@ -5,10 +5,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 
 import button.ArcadeButton;
 import button.IButton;
@@ -19,6 +17,7 @@ import headtohead.IScorable;
 import headtohead.Player;
 import physics.IPolygon;
 import physics.PhysicsObject;
+import sound.SoundName;
 
 public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	private static final long serialVersionUID = 1L;
@@ -60,10 +59,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	protected int[] lastShotCounters;
 	protected boolean[] shootWasPressed;
 	
-	// Sound
-	protected boolean soundOn = true;
-	protected Set<String> soundRequests;
-	
+	// Background
 	private long starsRandomSeed = 0;
 	
 	// Score/text
@@ -84,8 +80,6 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		
 		lastShotCounters = new int[players.length];
 		shootWasPressed = new boolean[players.length];
-		
-		soundRequests = new HashSet<String>();
 		
 		scoreMarkers = new ArrayList<ScoreMarker>();
 	}
@@ -208,8 +202,8 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		// Clear lists
 		bullets.clear();
 		fragments.clear();
-		soundRequests.clear();
 		scoreMarkers.clear();
+		sound.clearRequests();
 		
 		// Reset the round counters
 		roundStartCounter = 0;
@@ -246,12 +240,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 			}
 			
 			// Play all the sounds that were requested during this tick
-			if (soundOn) {
-				for (String soundName : soundRequests) {
-					sound.playSound(soundName);
-				}
-			}
-			soundRequests.clear();
+			sound.playRequestedSounds();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			newGame();
@@ -326,7 +315,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 				
 				// Play the game over sound once
 				if (!gameOverSoundPlayed) {
-					requestSound("GameOver");
+					sound.request(SoundName.GAMEOVER);
 					gameOverSoundPlayed = true;
 				}
 			} else {
@@ -437,7 +426,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 				Bullet shot = spaceships[i].shoot();
 				if (shot != null) {
 					bullets.add(shot);
-					requestSound("Pew");
+					sound.request(SoundName.PEW);
 				}
 				lastShotCounters[i] = shotCounter;
 			}
@@ -498,7 +487,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 					givePoints(bullet, spaceship);
 					
 					if (spaceship.isAlive()) {
-						requestSound("Hit");
+						sound.request(SoundName.HIT);
 					} else {
 						spaceshipDied(spaceship);
 					}
@@ -524,7 +513,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 					// No points are awarded
 					
 					// Ship and asteroid bounce off each other
-					requestSound("Bump");
+					sound.request(SoundName.BUMP);
 					asteroid.bounceWrapped(spaceship, getGameWidth(), getGameHeight());
 					
 					// TODO Apply random angular velocity
@@ -534,7 +523,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 					spaceship.takeHit();
 					
 					if (spaceship.isAlive()) {
-						requestSound("Bounce");
+						sound.request(SoundName.BOUNCE);
 					} else {
 						spaceshipDied(spaceship);
 					}
@@ -553,7 +542,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 				Asteroid asteroidB = asteroids.get(b);
 				if (asteroidA.isTouchingWrapped(asteroidB, getGameWidth(), getGameHeight())) {
 					// Asteroids bounce off each other
-					requestSound("Bump");
+					sound.request(SoundName.BUMP);
 					asteroidA.bounceWrapped(asteroidB, getGameWidth(), getGameHeight());
 				}
 			}
@@ -568,7 +557,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 				Bullet bullet = bullets.get(i);
 				if (bullet.isTouchingWrapped(asteroid, getGameWidth(), getGameHeight())) {
 					// Bullet hits this asteroid
-					requestSound("Crack");
+					sound.request(SoundName.CRACK);
 					givePoints(bullet, asteroid);
 					
 					// Split the asteroid in two
@@ -590,16 +579,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	
 	private void spaceshipDied(Spaceship spaceship) {
 		fragments.addAll(spaceship.getFragments());
-		requestSound("Crash");
-	}
-	
-	/**
-	 * Adds a sound to the set of sound requests.
-	 * 
-	 * @param soundName
-	 */
-	private void requestSound(String soundName) {
-		soundRequests.add(soundName);
+		sound.request(SoundName.CRASH);
 	}
 	
 	private void givePoints(IOwnable playerObj, IScorable scoreObj) {
