@@ -14,11 +14,13 @@ public class SingleVoiceSet extends VoiceSet {
 	
 	@Override
 	public void play() {
+		if (voice == null) return;
 		voice.start();
 	}
 	
 	@Override
 	public void stop() {
+		if (voice == null) return;
 		voice.stop();
 	}
 }

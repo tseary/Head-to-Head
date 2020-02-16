@@ -12,12 +12,16 @@ public class LoopingVoiceSet extends SingleVoiceSet {
 	
 	@Override
 	public void play() {
+		if (voice == null) return;
 		voice.loop(Clip.LOOP_CONTINUOUSLY);
 	}
 	
 	public void stop() {
+		if (voice == null) return;
+		
 		// Finish this loop and stop
 		// if (voice.isRunning()) voice.loop(0);
+		
 		// Stop immediately
 		voice.stop();	// Stop immediately
 	}
