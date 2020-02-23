@@ -171,18 +171,19 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		// Create asteroids
 		asteroids.clear();
 		Random random = new Random();
-		for (int i = 0; i < 15 + round; i++) {
+		for (int i = 0; i < 20 + round; i++) {
 			boolean bigOne = random.nextDouble() < 0.10d;
 			
 			Asteroid asteroid = new Asteroid(bigOne ? 3 : 2);
 			
 			// Randomize position
-			final long minRadiusSqr = (long)Math.pow(0.25d * getGameWidthPhysics(), 2d);
+			final long minRadiusSqr = (long)Math.pow(
+					0.15d * getGameWidthPhysics() + asteroid.getRadius(), 2d);
 			System.out.println("minRadiusSqr = " + minRadiusSqr);
 			boolean validPosition;
 			do {
-				asteroid.position.x = random.nextLong() % getGameWidthPhysics();
-				asteroid.position.y = random.nextLong() % getGameHeightPhysics();
+				asteroid.position.x = random.nextInt((int)getGameWidthPhysics());
+				asteroid.position.y = random.nextInt((int)getGameHeightPhysics());
 				
 				// Test the position and reroll if it's invalid
 				validPosition = true;

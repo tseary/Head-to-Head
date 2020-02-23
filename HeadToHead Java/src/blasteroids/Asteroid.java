@@ -70,9 +70,9 @@ public class Asteroid extends PhysicsObject implements IScorable {
 			object2.position.subtract(relativePosition);
 		}
 		
+		// Return if the objects are moving away from each other
 		Vector2D relativeVelocity = this.velocity.difference(object2.velocity);
 		double velocityAway = relativeVelocity.dotProduct(relativePosition);
-		System.out.println("velocityAway =\t" + velocityAway + "\t" + overlap);
 		if (velocityAway > 0d) return;
 		
 		// Do elastic collision
@@ -95,7 +95,7 @@ public class Asteroid extends PhysicsObject implements IScorable {
 		
 		double massTerm = 2d * mass2 / (mass1 + mass2);
 		
-		Vector2DLong position2Minus1 = obj1.position.difference(obj2.position);
+		Vector2D position2Minus1 = new Vector2D(obj1.position.difference(obj2.position));
 		
 		double numerator = obj1.velocity.difference(obj2.velocity).dotProduct(position2Minus1);
 		double denominator = position2Minus1.lengthSquared();
