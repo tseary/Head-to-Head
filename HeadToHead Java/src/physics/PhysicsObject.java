@@ -1,15 +1,20 @@
 package physics;
 
+import java.awt.Color;
+
 import geometry.Vector2D;
+import geometry.Vector2DLong;
 
 public abstract class PhysicsObject {
+	public Vector2DLong position;
+	public Vector2D velocity, acceleration;
 	
-	public Vector2D position, velocity, acceleration;
+	public Color color = Color.GRAY;
 	
 	public PhysicsObject() {
-		position = new Vector2D(0d, 0d);
-		velocity = new Vector2D(0d, 0d);
-		acceleration = new Vector2D(0d, 0d);
+		position = new Vector2DLong();
+		velocity = new Vector2D();
+		acceleration = new Vector2D();
 	}
 	
 	public PhysicsObject(PhysicsObject obj) {
@@ -18,16 +23,17 @@ public abstract class PhysicsObject {
 		this.acceleration = obj.acceleration.clone();
 	}
 	
-	abstract public double getRadius();
+	abstract public long getRadius();
 	
 	abstract public double getMass();
 	
-	public void move(double deltaTime) {
-		position.add(velocity.sum(acceleration.scalarProduct(deltaTime / 2d)).scalarProduct(deltaTime));
+	public void move(long deltaTime) {
+		position.add(velocity.sum(acceleration.scalarProduct(deltaTime / 2d))
+				.scalarProduct(deltaTime));
 		velocity.add(acceleration.scalarProduct(deltaTime));
 	}
 	
-	public boolean isTouchingWrapped(PhysicsObject obj, double width, double height) {
+	public boolean isTouchingWrapped(PhysicsObject obj, long width, long height) {
 		// Unwrap
 		unwrapPositions(this, obj, width, height);
 		
@@ -50,9 +56,9 @@ public abstract class PhysicsObject {
 	 * @param height
 	 * @return
 	 */
-	protected static void unwrapPositions(PhysicsObject objA, PhysicsObject objB, double width, double height) {
+	protected static void unwrapPositions(PhysicsObject objA, PhysicsObject objB, long width, long height) {
 		// Check if we need to unwrap in x
-		double xDistance = objA.position.x - objB.position.x;	// positive if A is on the right
+		long xDistance = objA.position.x - objB.position.x;	// positive if A is on the right
 		boolean unwrapX = Math.abs(xDistance) > 0.5d * width;
 		
 		// Unwrap the objects in x
@@ -66,8 +72,8 @@ public abstract class PhysicsObject {
 		}
 		
 		// Check if we need to unwrap in y
-		double yDistance = objA.position.y - objB.position.y;
-		boolean unwrapY = Math.abs(yDistance) > 0.5d * height;
+		long yDistance = objA.position.y - objB.position.y;
+		boolean unwrapY = Math.abs(yDistance) > height / 2;
 		
 		// Unwrap the objects in y
 		if (unwrapY) {
@@ -80,39 +86,37 @@ public abstract class PhysicsObject {
 		}
 	}
 	
-	public void wrapPosition(double width, double height) {
+	public void wrapPosition(long width, long height) {
 		position.x %= width;
-		if (position.x < 0d) {
+		if (position.x < 0) {
 			position.x += width;
 		}
 		position.y %= height;
-		if (position.y < 0d) {
+		if (position.y < 0) {
 			position.y += height;
 		}
 	}
 	
 	public boolean isTouching(PhysicsObject obj) {
 		// Do AABB collision first
-		if (!isTouchingAABB(obj)) {
-			return false;
-		}
+		if (!isTouchingAABB(obj)) return false;
 		
 		// Do circle collision
 		return isTouchingCircular(obj);
 	}
 	
 	protected boolean isTouchingAABB(PhysicsObject obj) {
-		double radiusSum = getRadius() + obj.getRadius();
+		long radiusSum = getRadius() + obj.getRadius();
 		return Math.abs(position.x - obj.position.x) <= radiusSum &&
 				Math.abs(position.y - obj.position.y) <= radiusSum;
 	}
 	
 	protected boolean isTouchingCircular(PhysicsObject obj) {
-		double radiusSum = getRadius() + obj.getRadius();
+		long radiusSum = getRadius() + obj.getRadius();
 		return distanceSquaredTo(obj) <= radiusSum * radiusSum;
 	}
 	
-	public double distanceSquaredTo(PhysicsObject obj) {
+	public long distanceSquaredTo(PhysicsObject obj) {
 		return this.position.difference(obj.position).lengthSquared();
 	}
 }

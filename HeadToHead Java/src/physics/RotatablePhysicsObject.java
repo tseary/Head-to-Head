@@ -28,7 +28,7 @@ public abstract class RotatablePhysicsObject extends PhysicsObject {
 	}
 	
 	@Override
-	public void move(double deltaTime) {
+	public void move(long deltaTime) {
 		super.move(deltaTime);
 		angle += (angularVelocity + angularAcceleration * deltaTime / 2d) * deltaTime;
 		angularVelocity += angularAcceleration * deltaTime;

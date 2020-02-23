@@ -13,14 +13,16 @@ import blasteroids.Fragment;
 import blasteroids.ScoreMarker;
 import button.ArcadeButton;
 import button.IButton;
-import geometry.SpaceVector2D;
+import geometry.SpaceVector2DLong;
 import geometry.Vector2D;
+import geometry.Vector2DLong;
 import headtohead.DebugMode;
 import headtohead.HeadToHeadGameCanvas;
 import headtohead.IOwnable;
 import headtohead.IScorable;
 import headtohead.Player;
 import physics.IPolygon;
+import physics.PhysicsConstants;
 import physics.PhysicsObject;
 import sound.SoundName;
 
@@ -37,8 +39,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	private static final double tankSteeringAccel = 8d;
 	private static final double tankSteeringDrag = 6d;
 	private static final double bulletMaxAge = 2.333d;
-	protected double deltaTimeAlive;
-	protected double deltaTimeDead;
+	protected long deltaTimeAlive, deltaTimeDead;
 	
 	@Override
 	public long getPhysicsTickMillis() {
@@ -99,15 +100,15 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		for (int i = 0; i < players.length; i++) {
 			Player player = players[i];
 			
-			Vector2D position1 = new Vector2D(
-					(i != 0 ? 0.07d : 0.93d) * getGameWidth(),
-					(i != 0 ? 0.90d : 0.10d) * getGameHeight());
+			Vector2DLong position1 = new Vector2DLong(
+					(i != 0 ? 0.07d : 0.93d) * getGameWidthPhysics(),
+					(i != 0 ? 0.90d : 0.10d) * getGameHeightPhysics());
 			playerScoreMarkers.add(new ScoreMarker(String.valueOf(0),
 					position1, player, isPlayerInverted(player)));
 			
-			Vector2D position2 = new Vector2D(
-					(i != 0 ? 0.93d : 0.07d) * getGameWidth(),
-					(i != 0 ? 0.10d : 0.90d) * getGameHeight() + (i != 0 ? 15 : -15));
+			Vector2DLong position2 = new Vector2DLong(
+					(i != 0 ? 0.93d : 0.07d) * getGameWidthPhysics(),
+					(i != 0 ? 0.10d : 0.90d) * getGameHeightPhysics() + (i != 0 ? 15 : -15));
 			playerScoreMarkers.add(new ScoreMarker(String.valueOf(0),
 					position2, player, !isPlayerInverted(player)));
 		}
@@ -138,8 +139,8 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		}
 		
 		// Start the game timer
-		deltaTimeAlive = getPhysicsTickMillis() / 1000d;
-		deltaTimeDead = deltaTimeAlive / 4d;
+		deltaTimeAlive = getPhysicsTickMillis();
+		deltaTimeDead = deltaTimeAlive / 4;
 	}
 	
 	@Override
@@ -147,15 +148,15 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		// Create player ships
 		if (players.length >= 1) {
 			Tank player0Tank = new Tank(0.25d * 2d * Math.PI, players[0]);
-			player0Tank.position.x = getGameWidth() / 2;
-			player0Tank.position.y = getGameHeight() / 10;
+			player0Tank.position.x = getGameWidthPhysics() / 2;
+			player0Tank.position.y = getGameHeightPhysics() / 10;
 			tanks[0] = player0Tank;
 		}
 		
 		if (players.length >= 2) {
 			Tank player1Tank = new Tank(0.75d * 2d * Math.PI, players[1]);
-			player1Tank.position.x = getGameWidth() / 2;
-			player1Tank.position.y = getGameHeight() * 9 / 10;
+			player1Tank.position.x = getGameWidthPhysics() / 2;
+			player1Tank.position.y = getGameHeightPhysics() * 9 / 10;
 			tanks[1] = player1Tank;
 		}
 		
@@ -176,12 +177,12 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		Random random = new Random();
 		for (int i = 0; i < 20; i++) {
 			// Choose a random wall postion, not to close to any tanks
-			Vector2D wallPosition;
+			Vector2DLong wallPosition;
 			double minDistanceSqrToTank;
 			do {
 				// Choose a random wall position
-				wallPosition = new Vector2D(random.nextDouble() * getGameWidth(),
-						random.nextDouble() * getGameHeight());
+				wallPosition = new Vector2DLong(random.nextDouble() * getGameWidthPhysics(),
+						random.nextDouble() * getGameHeightPhysics());
 				
 				// Calculate the distance to the closest tank
 				minDistanceSqrToTank = Double.MAX_VALUE;
@@ -366,7 +367,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		}
 	}
 	
-	private void moveEverything(double deltaTime) {
+	private void moveEverything(long deltaTime) {
 		// Move all tanks
 		for (Tank tank : tanks) {
 			tank.move(deltaTime);
@@ -389,7 +390,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 				sound.request(SoundName.ENGINE_1);
 			}
 			
-			tank.wrapPosition(getGameWidth(), getGameHeight());
+			tank.wrapPosition(getGameWidthPhysics(), getGameHeightPhysics());
 		}
 		
 		// Move bullets
@@ -403,7 +404,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 				continue;
 			}
 			
-			bullet.wrapPosition(getGameWidth(), getGameHeight());
+			bullet.wrapPosition(getGameWidthPhysics(), getGameHeightPhysics());
 		}
 		
 		// Move fragments
@@ -412,7 +413,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		}
 	}
 	
-	private void ageScoreMarkers(double deltaTime) {
+	private void ageScoreMarkers(long deltaTime) {
 		// Age score markers and remove ones that are too old
 		for (int i = 0; i < scoreMarkers.size(); i++) {
 			ScoreMarker scoreMarker = scoreMarkers.get(i);
@@ -484,7 +485,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 				
 				if (tankA.isTouching(tankB)) {
 					// Push
-					Vector2D positionDifference = tankA.position.difference(tankB.position);
+					Vector2DLong positionDifference = tankA.position.difference(tankB.position);
 					double radiusSum = tankA.getRadius() + tankB.getRadius();
 					double overlap = radiusSum - positionDifference.length();
 					/*if (overlap > 0d) {
@@ -506,7 +507,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 			for (Wall wall : walls) {
 				if (wall.isTouching(bullet)) {
 					// Get the normal vector from the wall to the bullet
-					SpaceVector2D surfaceNormal = wall.getSurfaceNormal(bullet.position);
+					SpaceVector2DLong surfaceNormal = wall.getSurfaceNormal(bullet.position);
 					
 					// Reflect the velocity off the normal
 					Vector2D v1 = bullet.velocity,
@@ -635,22 +636,23 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	@Override
 	public void drawVideoFrame(Graphics g, double extrapolate) {
 		// Scale by the delta time
-		extrapolate *= (isRoundOver() ? deltaTimeDead : deltaTimeAlive);
+		long extrapolateTime = (long)(extrapolate *
+				(isRoundOver() ? deltaTimeDead : deltaTimeAlive));
 		
 		// Clear the frame (background colour)
 		g.setColor(new Color(0x006000));
-		g.fillRect(0, 0, getGameWidth(), getGameHeight());
+		g.fillRect(0, 0, getGameWidthPixels(), getGameHeightPixels());
 		
 		// Draw the tank fragments
 		for (Fragment fragment : fragments) {
 			g.setColor(getOwnerColor(fragment));
-			drawPolygon(g, fragment, extrapolate);
+			drawPolygon(g, fragment, extrapolateTime);
 		}
 		
 		// Draw the walls
 		for (Wall wall : walls) {
 			g.setColor(Color.LIGHT_GRAY);
-			drawPolygon(g, wall, extrapolate);
+			drawPolygon(g, wall, extrapolateTime);
 		}
 		
 		// Draw the player tanks
@@ -659,11 +661,11 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 				continue;
 			}
 			g.setColor(getOwnerColor(tank));
-			drawPolygon(g, tank, extrapolate);
+			drawPolygon(g, tank, extrapolateTime);
 		}
 		
 		// DEBUG
-		// Draw lines demonstarting surface normals
+		// Draw lines demonstrating surface normals
 		/*if (DebugMode.isEnabled() && walls.size() >= 2) {
 			Wall wall = walls.get(1);
 			for (Bullet bullet : bullets) {
@@ -683,7 +685,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		// Draw the bullets
 		for (Bullet bullet : bullets) {
 			g.setColor(getOwnerColor(bullet));
-			drawPhysicsObject(g, bullet, extrapolate);
+			drawPhysicsObject(g, bullet, extrapolateTime);
 		}
 		
 		// Draw score markers
@@ -700,9 +702,9 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 			
 			final int rectWidth = 8, rectHeight = 11, rectSpacing = 15;
 			
-			int yBack = i == 0 ? (getGameHeight() / 10 - 6) : (getGameHeight() * 9 / 10 + 6);
+			int yBack = i == 0 ? (getGameHeightPixels() / 10 - 6) : (getGameHeightPixels() * 9 / 10 + 6);
 			int yFront = yBack + (i == 0 ? rectHeight : -rectHeight);
-			int xFirst = i == 0 ? 50 : (getGameWidth() - (50 + rectWidth) - 1);
+			int xFirst = i == 0 ? 50 : (getGameWidthPixels() - (50 + rectWidth) - 1);
 			int xPerHealth = i == 0 ? -rectSpacing : rectSpacing;
 			
 			for (int h = 0; h < tanks[i].getHealth(); h++) {
@@ -732,8 +734,8 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 			
 			int barWidth = 2 * tanks[i].getAmmo();
 			int barHeight = 6;
-			int xBar = i == 0 ? (59 - barWidth) : (getGameWidth() - 59);
-			int yBar = i == 0 ? 65 : (getGameHeight() - 65 - barHeight);
+			int xBar = i == 0 ? (59 - barWidth) : (getGameWidthPixels() - 59);
+			int yBar = i == 0 ? 65 : (getGameHeightPixels() - 65 - barHeight);
 			
 			for (int h = 0; h < tanks[i].getHealth(); h++) {
 				g.fillRect(xBar, yBar, barWidth, barHeight);
@@ -741,7 +743,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		}
 		
 		// Draw text on top of everything
-		final int yLine1 = getGameHeight() / 5;
+		final int yLine1 = getGameHeightPixels() / 5;
 		final int yLine2 = yLine1 - 15;
 		if (demoMode) {
 			drawTextMarker(g, "DEMO", yLine1);
@@ -785,13 +787,14 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	 * @param g
 	 * @param obj
 	 */
-	private void drawPhysicsObject(Graphics g, PhysicsObject obj, double extrapolateTime) {
+	private void drawPhysicsObject(Graphics g, PhysicsObject obj, long extrapolateTime) {
 		drawPhysicsObject(g, obj, extrapolateTime, false);
 	}
 	
-	private void drawPhysicsObject(Graphics g, PhysicsObject obj, double extrapolateTime, boolean wrap) {
+	private void drawPhysicsObject(Graphics g, PhysicsObject obj, long extrapolateTime, boolean wrap) {
 		
-		Vector2D drawPosition = IPolygon.extrapolatePosition(obj, extrapolateTime);
+		Vector2DLong drawPosition = PhysicsConstants.distanceToPixels(
+				IPolygon.extrapolatePosition(obj, extrapolateTime));
 		
 		int radius = Math.max(1, (int)obj.getRadius());
 		int xDraw = (int)drawPosition.x - radius;
@@ -809,19 +812,19 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		
 		// Draw wrapped copies of the object
 		boolean nearLeft = drawPosition.x < obj.getRadius(),
-				nearRight = drawPosition.x > getGameWidth() - obj.getRadius();
+				nearRight = drawPosition.x > getGameWidthPixels() - obj.getRadius();
 		if (nearLeft) {
-			xOffset = getGameWidth();
+			xOffset = getGameWidthPixels();
 		} else if (nearRight) {
-			xOffset = -getGameWidth();
+			xOffset = -getGameWidthPixels();
 		}
 		
 		boolean nearTop = drawPosition.y < obj.getRadius(),
-				nearBottom = drawPosition.y > getGameHeight() - obj.getRadius();
+				nearBottom = drawPosition.y > getGameHeightPixels() - obj.getRadius();
 		if (nearTop) {
-			yOffset = getGameHeight();
+			yOffset = getGameHeightPixels();
 		} else if (nearBottom) {
-			yOffset = -getGameHeight();
+			yOffset = -getGameHeightPixels();
 		}
 		
 		// Draw x wrapped
@@ -843,7 +846,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		}
 	}
 	
-	private static void drawPolygon(Graphics g, IPolygon polygonObj, double extrapolateTime) {
+	private static void drawPolygon(Graphics g, IPolygon polygonObj, long extrapolateTime) {
 		// Get the spaceship outline as a polygon
 		Polygon polygon = polygonObj.getOutline(extrapolateTime);
 		
@@ -854,17 +857,19 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	
 	/**
 	 * Draws neutral score markers with arbitrary text, visible to both players.
+	 * Score marker positions are defined in pixels, not physics units.
 	 */
 	private void drawTextMarker(Graphics g, String message, int yLine) {
-		int xCenter = getGameWidth() / 2;
-		Vector2D position0Inverted = new Vector2D(xCenter, yLine);
-		Vector2D position1NonInverted = new Vector2D(xCenter, getGameHeight() - yLine);
+		int xCenter = getGameWidthPixels() / 2;
+		Vector2DLong position0Inverted = new Vector2DLong(xCenter, yLine),
+				position1NonInverted = new Vector2DLong(xCenter, getGameHeightPhysics() - yLine);
 		drawScoreMarker(g, new ScoreMarker(message, position0Inverted, null, true));
 		drawScoreMarker(g, new ScoreMarker(message, position1NonInverted, null, false));
 	}
 	
 	/**
 	 * Draws score markers with arbitrary text for each player.
+	 * Score marker positions are defined in pixels, not physics units.
 	 * 
 	 * @param g
 	 * @param messages
@@ -872,9 +877,9 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	 * @param owner
 	 */
 	private void drawTextMarker(Graphics g, String[] messages, int yLine, Player owner) {
-		int xCenter = getGameWidth() / 2;
-		Vector2D position0Inverted = new Vector2D(xCenter, yLine);
-		Vector2D position1NonInverted = new Vector2D(xCenter, getGameHeight() - yLine);
+		int xCenter = getGameWidthPixels() / 2;
+		Vector2DLong position0Inverted = new Vector2DLong(xCenter, yLine),
+				position1NonInverted = new Vector2DLong(xCenter, getGameHeightPixels() - yLine);
 		drawScoreMarker(g, new ScoreMarker(messages[0], position0Inverted, owner, true));
 		drawScoreMarker(g, new ScoreMarker(messages[1], position1NonInverted, owner, false));
 	}

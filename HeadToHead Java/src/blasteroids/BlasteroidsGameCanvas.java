@@ -11,11 +11,13 @@ import java.util.Random;
 import button.ArcadeButton;
 import button.IButton;
 import geometry.Vector2D;
+import geometry.Vector2DLong;
 import headtohead.HeadToHeadGameCanvas;
 import headtohead.IOwnable;
 import headtohead.IScorable;
 import headtohead.Player;
 import physics.IPolygon;
+import physics.PhysicsConstants;
 import physics.PhysicsObject;
 import sound.SoundName;
 
@@ -24,14 +26,14 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	
 	// Physics constants
 	private static final int gameTimerFPS = 60;
-	private static final double spaceshipMaxSpeed = 200d;
-	private static final double spaceshipThrust = 180d;// 150d;
-	private static final double spaceshipDrag = 0.3d;
+	private static final double spaceshipMaxSpeed = PhysicsConstants.velocity(200d);
+	private static final double spaceshipThrust = PhysicsConstants.acceleration(180d);
+	private static final double spaceshipDrag = PhysicsConstants.integral(0.3d);
 	private static final double stepsPerHalfTurn = Math.round(gameTimerFPS / 3d);
-	private static final double asteroidMinSpeed = 15d, asteroidMaxSpeed = 40d;
-	private static final double bulletMaxAge = 2.333d;
-	protected double deltaTimeAlive;
-	protected double deltaTimeDead;
+	private static final double asteroidMinSpeed = PhysicsConstants.velocity(15d),
+			asteroidMaxSpeed = PhysicsConstants.velocity(40d);
+	private static final double bulletMaxAge = PhysicsConstants.time(2.333d);
+	protected long deltaTimeAlive, deltaTimeDead;
 	
 	@Override
 	public long getPhysicsTickMillis() {
@@ -63,7 +65,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	private long starsRandomSeed = 0;
 	
 	// Score/text
-	private static final double scoreMarkerMaxAge = 0.5d;
+	private static final long scoreMarkerMaxAge = PhysicsConstants.time(0.5d);
 	/** Ephemeral markers that show points as they are earned. */
 	protected List<ScoreMarker> scoreMarkers;
 	/** Permanent markers that show each player's score. */
@@ -93,15 +95,16 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		for (int i = 0; i < players.length; i++) {
 			Player player = players[i];
 			
-			Vector2D position1 = new Vector2D(
-					(i != 0 ? 0.07d : 0.93d) * getGameWidth(),
-					(i != 0 ? 0.90d : 0.10d) * getGameHeight());
+			Vector2DLong position1 = new Vector2DLong(
+					(long)((i != 0 ? 0.07d : 0.93d) * getGameWidthPhysics()),
+					(long)((i != 0 ? 0.90d : 0.10d) * getGameHeightPhysics()));
 			playerScoreMarkers.add(new ScoreMarker(String.valueOf(0),
 					position1, player, isPlayerInverted(player)));
 			
-			Vector2D position2 = new Vector2D(
-					(i != 0 ? 0.93d : 0.07d) * getGameWidth(),
-					(i != 0 ? 0.10d : 0.90d) * getGameHeight() + (i != 0 ? 15 : -15));
+			Vector2DLong position2 = new Vector2DLong(
+					(long)((i != 0 ? 0.93d : 0.07d) * getGameWidthPhysics()),
+					(long)((i != 0 ? 0.10d : 0.90d) * getGameHeightPhysics() +
+							PhysicsConstants.distance(i != 0 ? 15 : -15)));
 			playerScoreMarkers.add(new ScoreMarker(String.valueOf(0),
 					position2, player, !isPlayerInverted(player)));
 		}
@@ -137,8 +140,8 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		}
 		
 		// Start the game timer
-		deltaTimeAlive = getPhysicsTickMillis() / 1000d;
-		deltaTimeDead = deltaTimeAlive / 4d;
+		deltaTimeAlive = getPhysicsTickMillis();
+		deltaTimeDead = deltaTimeAlive / 4;
 	}
 	
 	@Override
@@ -153,8 +156,8 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 			} else {
 				// Make new ship
 				spaceship = new Spaceship((0.25d + 0.5d * i) * 2d * Math.PI, players[i]);
-				spaceship.position.x = getGameWidth() / 2;
-				spaceship.position.y = getGameHeight() * (1 + 8 * i) / 10;
+				spaceship.position.x = getGameWidthPhysics() / 2;
+				spaceship.position.y = getGameHeightPhysics() * (1 + 8 * i) / 10;
 				spaceships[i] = spaceship;
 			}
 		}
@@ -168,21 +171,26 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		// Create asteroids
 		asteroids.clear();
 		Random random = new Random();
-		for (int i = 0; i < 3 + round; i++) {
+		for (int i = 0; i < 15 + round; i++) {
 			boolean bigOne = random.nextDouble() < 0.10d;
 			
 			Asteroid asteroid = new Asteroid(bigOne ? 3 : 2);
 			
+			// Randomize position
+			final long minRadiusSqr = (long)Math.pow(0.25d * getGameWidthPhysics(), 2d);
+			System.out.println("minRadiusSqr = " + minRadiusSqr);
 			boolean validPosition;
 			do {
-				asteroid.position.x = random.nextInt(getGameWidth());
-				asteroid.position.y = random.nextInt(getGameHeight());
+				asteroid.position.x = random.nextLong() % getGameWidthPhysics();
+				asteroid.position.y = random.nextLong() % getGameHeightPhysics();
 				
 				// Test the position and reroll if it's invalid
-				final double minRadiusSqr = Math.pow(0.25d * getGameHeight(), 2d);
 				validPosition = true;
 				for (int p = 0; p < spaceships.length; p++) {
-					if (asteroid.distanceSquaredTo(spaceships[p]) > minRadiusSqr) continue;
+					long distSqr = asteroid.distanceSquaredTo(spaceships[p]);
+					System.out.println("distSqr = " + distSqr);
+					if (distSqr > minRadiusSqr) continue;
+					System.out.println("reroll");
 					validPosition = false;
 					break;
 				}
@@ -198,6 +206,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 				i++;
 			}
 		}
+		System.out.println();
 		
 		// Clear lists
 		bullets.clear();
@@ -359,11 +368,11 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		}
 	}
 	
-	private void moveEverything(double deltaTime) {
+	private void moveEverything(long deltaTime) {
 		// Move asteroids
 		for (Asteroid asteroid : asteroids) {
 			asteroid.move(deltaTime);
-			asteroid.wrapPosition(getGameWidth(), getGameHeight());
+			asteroid.wrapPosition(getGameWidthPhysics(), getGameHeightPhysics());
 		}
 		
 		// Move all spaceships
@@ -375,7 +384,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 				spaceship.velocity.setLength(spaceshipMaxSpeed);
 			}
 			
-			spaceship.wrapPosition(getGameWidth(), getGameHeight());
+			spaceship.wrapPosition(getGameWidthPhysics(), getGameHeightPhysics());
 		}
 		
 		// Move bullets
@@ -389,7 +398,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 				continue;
 			}
 			
-			bullet.wrapPosition(getGameWidth(), getGameHeight());
+			bullet.wrapPosition(getGameWidthPhysics(), getGameHeightPhysics());
 		}
 		
 		// Move fragments
@@ -398,7 +407,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		}
 	}
 	
-	private void ageScoreMarkers(double deltaTime) {
+	private void ageScoreMarkers(long deltaTime) {
 		// Age score markers and remove ones that are too old
 		for (int i = 0; i < scoreMarkers.size(); i++) {
 			ScoreMarker scoreMarker = scoreMarkers.get(i);
@@ -508,13 +517,13 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 			}
 			
 			for (Asteroid asteroid : asteroids) {
-				if (spaceship.isTouchingWrapped(asteroid, getGameWidth(), getGameHeight())) {
+				if (spaceship.isTouchingWrapped(asteroid, getGameWidthPhysics(), getGameHeightPhysics())) {
 					// Bounce off the asteroid and lose a life
 					// No points are awarded
 					
 					// Ship and asteroid bounce off each other
 					sound.request(SoundName.BUMP);
-					asteroid.bounceWrapped(spaceship, getGameWidth(), getGameHeight());
+					asteroid.bounceWrapped(spaceship, getGameWidthPhysics(), getGameHeightPhysics());
 					
 					// TODO Apply random angular velocity
 					// spaceship.angularVelocity += 1d;
@@ -535,15 +544,21 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	}
 	
 	private void collideAsteroidToAsteroid() {
+		for (Asteroid asteroid : asteroids) {
+			asteroid.color = Color.GRAY;
+		}
+		
 		// Calculate asteroid-asteroid collisions
 		for (int a = 0; a < asteroids.size() - 1; a++) {
 			Asteroid asteroidA = asteroids.get(a);
 			for (int b = a + 1; b < asteroids.size(); b++) {
 				Asteroid asteroidB = asteroids.get(b);
-				if (asteroidA.isTouchingWrapped(asteroidB, getGameWidth(), getGameHeight())) {
+				if (asteroidA.isTouchingWrapped(asteroidB, getGameWidthPhysics(), getGameHeightPhysics())) {
 					// Asteroids bounce off each other
 					sound.request(SoundName.BUMP);
-					asteroidA.bounceWrapped(asteroidB, getGameWidth(), getGameHeight());
+					asteroidA.bounceWrapped(asteroidB, getGameWidthPhysics(), getGameHeightPhysics());
+					asteroidA.color = Color.MAGENTA;
+					asteroidB.color = Color.CYAN;
 				}
 			}
 		}
@@ -555,7 +570,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 			Asteroid asteroid = asteroids.get(a);
 			for (int i = 0; i < bullets.size(); i++) {
 				Bullet bullet = bullets.get(i);
-				if (bullet.isTouchingWrapped(asteroid, getGameWidth(), getGameHeight())) {
+				if (bullet.isTouchingWrapped(asteroid, getGameWidthPhysics(), getGameHeightPhysics())) {
 					// Bullet hits this asteroid
 					sound.request(SoundName.CRACK);
 					givePoints(bullet, asteroid);
@@ -649,11 +664,12 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	@Override
 	public void drawVideoFrame(Graphics g, double extrapolate) {
 		// Scale by the delta time
-		extrapolate *= (isRoundOver() ? deltaTimeDead : deltaTimeAlive);
+		long extrapolateTime = (long)(extrapolate *
+				(isRoundOver() ? deltaTimeDead : deltaTimeAlive));
 		
 		// Clear the frame
 		g.setColor(Color.BLACK);
-		g.fillRect(0, 0, getGameWidth(), getGameHeight());
+		g.fillRect(0, 0, getGameWidthPixels(), getGameHeightPixels());
 		
 		// It's full of stars
 		Random random = new Random(starsRandomSeed);
@@ -662,14 +678,14 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		for (int i = 0; i < 80; i++) {
 			g.setColor(random.nextBoolean() ? color1 : color2);
 			int starSize = random.nextBoolean() ? 1 : 2;
-			g.fillRect(random.nextInt(getGameWidth()),
-					random.nextInt(getGameHeight()), starSize, starSize);
+			g.fillRect(random.nextInt(getGameWidthPixels()),
+					random.nextInt(getGameHeightPixels()), starSize, starSize);
 		}
 		
 		// Draw the asteroids
 		g.setColor(Color.GRAY);
 		for (Asteroid asteroid : asteroids) {
-			drawPhysicsObject(g, asteroid, extrapolate, true);
+			drawPhysicsObject(g, asteroid, extrapolateTime, true);
 		}
 		
 		// Draw the player spaceships
@@ -678,19 +694,19 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 				continue;
 			}
 			g.setColor(getOwnerColor(spaceship));
-			drawPolygon(g, spaceship, extrapolate);
+			drawPolygon(g, spaceship, extrapolateTime);
 		}
 		
 		// Draw the spaceship fragments
 		for (Fragment fragment : fragments) {
 			g.setColor(getOwnerColor(fragment));
-			drawPolygon(g, fragment, extrapolate);
+			drawPolygon(g, fragment, extrapolateTime);
 		}
 		
 		// Draw the bullets
 		for (Bullet bullet : bullets) {
 			g.setColor(getOwnerColor(bullet));
-			drawPhysicsObject(g, bullet, extrapolate);
+			drawPhysicsObject(g, bullet, extrapolateTime);
 		}
 		
 		// Draw score markers
@@ -707,9 +723,9 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 			
 			final int triangleWidth = 8, triangleHeight = 11, triangleSpacing = 15;
 			
-			int yBase = i == 0 ? (getGameHeight() / 10 - 6) : (getGameHeight() * 9 / 10 + 6);
+			int yBase = i == 0 ? (getGameHeightPixels() / 10 - 6) : (getGameHeightPixels() * 9 / 10 + 6);
 			int yNose = yBase + (i == 0 ? triangleHeight : -triangleHeight);
-			int xFirst = i == 0 ? 50 : (getGameWidth() - (50 + triangleWidth) - 1);
+			int xFirst = i == 0 ? 50 : (getGameWidthPixels() - (50 + triangleWidth) - 1);
 			int xPerHealth = i == 0 ? -triangleSpacing : triangleSpacing;
 			
 			for (int h = 0; h < spaceships[i].getHealth(); h++) {
@@ -725,7 +741,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		}
 		
 		// Draw text on top of everything
-		final int yLine1 = getGameHeight() / 5;
+		final int yLine1 = getGameHeightPixels() / 5;
 		final int yLine2 = yLine1 - 15;
 		if (demoMode) {
 			drawTextMarker(g, "DEMO", yLine1);
@@ -769,19 +785,21 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	 * @param g
 	 * @param obj
 	 */
-	private void drawPhysicsObject(Graphics g, PhysicsObject obj, double extrapolateTime) {
+	private void drawPhysicsObject(Graphics g, PhysicsObject obj, long extrapolateTime) {
 		drawPhysicsObject(g, obj, extrapolateTime, false);
 	}
 	
-	private void drawPhysicsObject(Graphics g, PhysicsObject obj, double extrapolateTime, boolean wrap) {
+	private void drawPhysicsObject(Graphics g, PhysicsObject obj, long extrapolateTime, boolean wrap) {
 		
-		Vector2D drawPosition = IPolygon.extrapolatePosition(obj, extrapolateTime);
+		Vector2DLong drawPositionPx = PhysicsConstants.distanceToPixels(
+				IPolygon.extrapolatePosition(obj, extrapolateTime));
 		
-		int radius = Math.max(1, (int)obj.getRadius());
-		int xDraw = (int)drawPosition.x - radius;
-		int yDraw = (int)drawPosition.y - radius;
+		int radius = Math.max(1, PhysicsConstants.distanceToPixels(obj.getRadius()));
+		int xDraw = (int)drawPositionPx.x - radius;
+		int yDraw = (int)drawPositionPx.y - radius;
 		int diameter = 2 * radius;
 		
+		g.setColor(obj.color);// DEBUG
 		g.fillOval(xDraw, yDraw, diameter, diameter);
 		g.drawOval(xDraw, yDraw, diameter, diameter);
 		
@@ -792,20 +810,22 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		int xOffset = 0, yOffset = 0;
 		
 		// Draw wrapped copies of the object
-		boolean nearLeft = drawPosition.x < obj.getRadius(),
-				nearRight = drawPosition.x > getGameWidth() - obj.getRadius();
+		boolean nearLeft = drawPositionPx.x < obj.getRadius(),
+				nearRight = drawPositionPx.x > getGameWidthPixels() -
+						PhysicsConstants.distanceToPixels(obj.getRadius());
 		if (nearLeft) {
-			xOffset = getGameWidth();
+			xOffset = getGameWidthPixels();
 		} else if (nearRight) {
-			xOffset = -getGameWidth();
+			xOffset = -getGameWidthPixels();
 		}
 		
-		boolean nearTop = drawPosition.y < obj.getRadius(),
-				nearBottom = drawPosition.y > getGameHeight() - obj.getRadius();
+		boolean nearTop = drawPositionPx.y < obj.getRadius(),
+				nearBottom = drawPositionPx.y > getGameHeightPixels() -
+						PhysicsConstants.distanceToPixels(obj.getRadius());
 		if (nearTop) {
-			yOffset = getGameHeight();
+			yOffset = getGameHeightPixels();
 		} else if (nearBottom) {
-			yOffset = -getGameHeight();
+			yOffset = -getGameHeightPixels();
 		}
 		
 		// Draw x wrapped
@@ -827,7 +847,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		}
 	}
 	
-	private static void drawPolygon(Graphics g, IPolygon polygonObj, double extrapolateTime) {
+	private static void drawPolygon(Graphics g, IPolygon polygonObj, long extrapolateTime) {
 		// Get the spaceship outline as a polygon
 		Polygon polygon = polygonObj.getOutline(extrapolateTime);
 		
@@ -840,9 +860,10 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	 * Draws neutral score markers with arbitrary text, visible to both players.
 	 */
 	private void drawTextMarker(Graphics g, String message, int yLine) {
-		int xCenter = getGameWidth() / 2;
-		Vector2D position0Inverted = new Vector2D(xCenter, yLine);
-		Vector2D position1NonInverted = new Vector2D(xCenter, getGameHeight() - yLine);
+		long xCenter = getGameWidthPhysics() / 2;
+		long yLinePhys = PhysicsConstants.distance(yLine);
+		Vector2DLong position0Inverted = new Vector2DLong(xCenter, yLinePhys);
+		Vector2DLong position1NonInverted = new Vector2DLong(xCenter, getGameHeightPhysics() - yLinePhys);
 		drawScoreMarker(g, new ScoreMarker(message, position0Inverted, null, true));
 		drawScoreMarker(g, new ScoreMarker(message, position1NonInverted, null, false));
 	}
@@ -856,9 +877,10 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	 * @param owner
 	 */
 	private void drawTextMarker(Graphics g, String[] messages, int yLine, Player owner) {
-		int xCenter = getGameWidth() / 2;
-		Vector2D position0Inverted = new Vector2D(xCenter, yLine);
-		Vector2D position1NonInverted = new Vector2D(xCenter, getGameHeight() - yLine);
+		long xCenter = getGameWidthPhysics() / 2;
+		long yLinePhys = PhysicsConstants.distance(yLine);
+		Vector2DLong position0Inverted = new Vector2DLong(xCenter, yLinePhys);
+		Vector2DLong position1NonInverted = new Vector2DLong(xCenter, getGameHeightPhysics() - yLinePhys);
 		drawScoreMarker(g, new ScoreMarker(messages[0], position0Inverted, owner, true));
 		drawScoreMarker(g, new ScoreMarker(messages[1], position1NonInverted, owner, false));
 	}
@@ -875,8 +897,10 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		// Center the text
 		int xOffset = g.getFontMetrics().stringWidth(scoreMarker.value) / 2,
 				yOffset = 5;
-		int xDraw = (int)(scoreMarker.position.x + (scoreMarker.isInverted() ? xOffset : -xOffset)),
-				yDraw = (int)(scoreMarker.position.y - (scoreMarker.isInverted() ? yOffset : -yOffset));
+		int xDraw = (int)(PhysicsConstants.distanceToPixels(scoreMarker.position.x) +
+				(scoreMarker.isInverted() ? xOffset : -xOffset)),
+				yDraw = (int)(PhysicsConstants.distanceToPixels(scoreMarker.position.y) -
+						(scoreMarker.isInverted() ? yOffset : -yOffset));
 		
 		// Draw inverted or not
 		if (scoreMarker.isInverted()) {

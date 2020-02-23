@@ -2,8 +2,9 @@ package physics;
 
 import java.awt.Polygon;
 
-import geometry.SpaceVector2D;
+import geometry.SpaceVector2DLong;
 import geometry.Vector2D;
+import geometry.Vector2DLong;
 import headtohead.DebugMode;
 
 public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject implements IPolygon {
@@ -12,17 +13,17 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 	 * The size vector points from the center of the rectangle to the vertex
 	 * in the first quadrant, in this rectangle's coordinate space.
 	 */
-	protected Vector2D size;
-	protected double boundingRadius;
+	protected Vector2DLong size;
+	protected long boundingRadius;
 	
 	// The angle spanned by the top face of the rectangle.
 	// The size vector rotated by this angle equals the size vector in quadrant 2.
 	private double sizeQuad2Angle;
 	
-	public RotatableRectanglePhysicsObject(double width, double height) {
+	public RotatableRectanglePhysicsObject(long width, long height) {
 		super();
-		size = new Vector2D(width / 2d, height / 2d);
-		boundingRadius = size.length();
+		size = new Vector2DLong(width / 2, height / 2);
+		boundingRadius = (long)size.length();
 		sizeQuad2Angle = new Vector2D(-size.x, size.y).angle() - size.angle();
 	}
 	
@@ -33,23 +34,23 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 		
 		if (!(obj instanceof RotatableRectanglePhysicsObject)) {
 			// The object's position in this rectangle's coordinate space
-			Vector2D circleCenter = obj.position.difference(position).getRotated(-angle);
-			final double circleRadius = obj.getRadius();
+			Vector2DLong circleCenter = obj.position.difference(position).getRotated(-angle);
+			final long circleRadius = obj.getRadius();
 			
-			Vector2D wideSize = new Vector2D(size.x + circleRadius, size.y);
+			Vector2DLong wideSize = new Vector2DLong(size.x + circleRadius, size.y);
 			if (Math.abs(circleCenter.x) <= wideSize.x && Math.abs(circleCenter.y) <= wideSize.y) {
 				// Object is touching on the left or right ends of the rectangle, or in the middle
 				return true;
 			}
 			
-			Vector2D tallSize = new Vector2D(size.x, size.y + circleRadius);
+			Vector2DLong tallSize = new Vector2DLong(size.x, size.y + circleRadius);
 			if (Math.abs(circleCenter.x) <= tallSize.x && Math.abs(circleCenter.y) <= tallSize.y) {
 				// Object is touching on the top or bottom of the rectangle, or in the middle
 				return true;
 			}
 			
 			// True if any vertex is inside the object's radius
-			Vector2D circleCenterAbs = new Vector2D(Math.abs(circleCenter.x), Math.abs(circleCenter.y));
+			Vector2DLong circleCenterAbs = new Vector2DLong(Math.abs(circleCenter.x), Math.abs(circleCenter.y));
 			return circleCenterAbs.difference(size).lengthSquared() <= circleRadius * circleRadius;
 		}
 		
@@ -59,8 +60,8 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 		RotatableRectanglePhysicsObject obj1 = this;
 		RotatableRectanglePhysicsObject obj2 = (RotatableRectanglePhysicsObject)obj;
 		
-		Vector2D[] obj1OutlineVectors = obj1.getOutlineVectors(0d);
-		for (Vector2D vertex1 : obj1OutlineVectors) {
+		Vector2DLong[] obj1OutlineVectors = obj1.getOutlineVectors(0);
+		for (Vector2DLong vertex1 : obj1OutlineVectors) {
 			if (vertex1 == null) {
 				if (DebugMode.isEnabled()) {
 					System.out.println("null vertex1");
@@ -70,8 +71,8 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 			if (obj2.isPointInside(vertex1)) return true;
 		}
 		
-		Vector2D[] obj2OutlineVectors = obj2.getOutlineVectors(0d);
-		for (Vector2D vertex2 : obj2OutlineVectors) {
+		Vector2DLong[] obj2OutlineVectors = obj2.getOutlineVectors(0);
+		for (Vector2DLong vertex2 : obj2OutlineVectors) {
 			if (vertex2 == null) {
 				if (DebugMode.isEnabled()) {
 					System.out.println("null vertex2");
@@ -89,9 +90,9 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 	 * @param point
 	 * @return
 	 */
-	protected boolean isPointInside(Vector2D point) {
+	protected boolean isPointInside(Vector2DLong point) {
 		// Relative point implementation:
-		Vector2D pointRel = point.difference(position);
+		Vector2DLong pointRel = point.difference(position);
 		pointRel.rotate(-angle);
 		return Math.abs(pointRel.x) <= size.x && Math.abs(pointRel.y) <= size.y;
 	}
@@ -102,16 +103,16 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 	 * @param point
 	 * @return The returned vector is guaranteed non-zero.
 	 */
-	public SpaceVector2D getSurfaceNormal(Vector2D point) {
+	public SpaceVector2DLong getSurfaceNormal(Vector2DLong point) {
 		// The object's position in this rectangle's coordinate space
-		Vector2D pointRel = point.difference(position).getRotated(-angle);
+		Vector2DLong pointRel = point.difference(position).getRotated(-angle);
 		
 		boolean rightOutside = pointRel.x > size.x,
 				leftOutside = pointRel.x < -size.x;
 		boolean aboveOutside = pointRel.y > size.y,
 				belowOutside = pointRel.y < -size.y;
 		
-		SpaceVector2D surfaceNormal = new SpaceVector2D();
+		SpaceVector2DLong surfaceNormal = new SpaceVector2DLong();
 		
 		if (rightOutside) {
 			// Right
@@ -194,7 +195,7 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 	}
 	
 	@Override
-	public double getRadius() {
+	public long getRadius() {
 		return boundingRadius;
 	}
 	
@@ -204,11 +205,11 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 	}
 	
 	@Override
-	public Vector2D[] getOutlineVectors(double extrapolateTime) {
-		Vector2D sizeQuad13 = size.getRotated(angle),
-				sizeQuad24 = new Vector2D(-size.x, size.y);
+	public Vector2DLong[] getOutlineVectors(long extrapolateTime) {
+		Vector2DLong sizeQuad13 = size.getRotated(angle),
+				sizeQuad24 = new Vector2DLong(-size.x, size.y);
 		sizeQuad24.rotate(angle);
-		return new Vector2D[] {
+		return new Vector2DLong[] {
 				position.sum(sizeQuad13),
 				position.sum(sizeQuad24),
 				position.difference(sizeQuad13),
@@ -216,7 +217,7 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 	}
 	
 	@Override
-	public Polygon getOutline(double extrapolateTime) {
+	public Polygon getOutline(long extrapolateTime) {
 		return IPolygon.vectorsToPolygon(getOutlineVectors(extrapolateTime));
 	}
 }

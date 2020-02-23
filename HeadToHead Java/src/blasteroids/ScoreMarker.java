@@ -1,6 +1,6 @@
 package blasteroids;
 
-import geometry.Vector2D;
+import geometry.Vector2DLong;
 import headtohead.IOwnable;
 import headtohead.Player;
 import physics.AgedPhysicsObject;
@@ -13,7 +13,7 @@ public class ScoreMarker extends AgedPhysicsObject implements IOwnable {
 	
 	private boolean inverted = false;
 	
-	public ScoreMarker(String value, Vector2D position, Player owner, boolean inverted) {
+	public ScoreMarker(String value, Vector2DLong position, Player owner, boolean inverted) {
 		this.value = value;
 		this.position = position.clone();
 		this.owner = owner;
@@ -21,13 +21,13 @@ public class ScoreMarker extends AgedPhysicsObject implements IOwnable {
 	}
 	
 	@Override
-	public void move(double deltaTime) {
+	public void move(long deltaTime) {
 		age += deltaTime;
 	}
 	
 	@Override
-	public double getRadius() {
-		return 0d;
+	public long getRadius() {
+		return 0;
 	}
 	
 	@Override

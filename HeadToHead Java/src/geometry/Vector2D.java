@@ -9,7 +9,12 @@ public class Vector2D {
 	@SuppressWarnings("unused")
 	private static final long serialVersionUID = 140127L;
 	
-	public double x = 0.0, y = 0.0;
+	public double x, y;
+	
+	public Vector2D() {
+		this.x = 0d;
+		this.y = 0d;
+	}
 	
 	public Vector2D(double x, double y) {
 		this.x = x;
@@ -24,6 +29,11 @@ public class Vector2D {
 			this.x = xr;
 			this.y = yt;
 		}
+	}
+	
+	public Vector2D(Vector2DLong v) {
+		this.x = v.x;
+		this.y = v.y;
 	}
 	
 	/**
@@ -68,6 +78,10 @@ public class Vector2D {
 		return new Vector2D(this.x - v.x, this.y - v.y);
 	}
 	
+	public Vector2D difference(Vector2DLong v) {
+		return new Vector2D(this.x - v.x, this.y - v.y);
+	}
+	
 	/**
 	 * Calculates the sum of the products of the operands' respective x and y
 	 * components.
@@ -77,6 +91,10 @@ public class Vector2D {
 	 * @return <code>this.x*v.x + this.y*v.y</code>
 	 */
 	public double dotProduct(Vector2D v) {
+		return this.x * v.x + this.y * v.y;
+	}
+	
+	public double dotProduct(Vector2DLong v) {
 		return this.x * v.x + this.y * v.y;
 	}
 	
@@ -203,6 +221,10 @@ public class Vector2D {
 	 * @see <code>public Vector2D add(Vector2D v)</code>
 	 */
 	public Vector2D sum(Vector2D v) {
+		return new Vector2D(this.x + v.x, this.y + v.y);
+	}
+	
+	public Vector2D sum(Vector2DLong v) {
 		return new Vector2D(this.x + v.x, this.y + v.y);
 	}
 	

@@ -3,6 +3,7 @@ package physics;
 import java.awt.Polygon;
 
 import geometry.Vector2D;
+import geometry.Vector2DLong;
 import headtohead.DebugMode;
 
 @Deprecated
@@ -12,9 +13,9 @@ public abstract class RotatablePolygonPhysicsObject extends RotatablePhysicsObje
 		if (!(obj instanceof RotatablePolygonPhysicsObject)) {
 			
 			// Check if any point on the outline is inside the obj
-			Vector2D[] outline = getOutlineVectors(0d);
+			Vector2DLong[] outline = getOutlineVectors(0);
 			double objRadiusSqr = Math.pow(obj.getRadius(), 2d);
-			for (Vector2D point : outline) {
+			for (Vector2DLong point : outline) {
 				if (point.difference(obj.position).lengthSquared() <= objRadiusSqr) {
 					return true;
 				}
@@ -30,15 +31,15 @@ public abstract class RotatablePolygonPhysicsObject extends RotatablePhysicsObje
 		
 		Vector2D axis = obj2.position.difference(obj1.position).toUnit();
 		
-		Vector2D[] obj1OutlineVectors = obj1.getOutlineVectors(0d);
-		Vector2D[] obj2OutlineVectors = obj2.getOutlineVectors(0d);
+		Vector2DLong[] obj1OutlineVectors = obj1.getOutlineVectors(0);
+		Vector2DLong[] obj2OutlineVectors = obj2.getOutlineVectors(0);
 		
 		double obj1Max = obj1.position.dotProduct(axis),
 				obj1Min = obj1Max;
 		double obj2Max = obj2.position.dotProduct(axis),
 				obj2Min = obj2Max;
 		
-		for (Vector2D vertex1 : obj1OutlineVectors) {
+		for (Vector2DLong vertex1 : obj1OutlineVectors) {
 			double obj1ProjectedVertex = vertex1.dotProduct(axis);
 			
 			if (obj1ProjectedVertex > obj1Max) {
@@ -48,7 +49,7 @@ public abstract class RotatablePolygonPhysicsObject extends RotatablePhysicsObje
 			}
 		}
 		
-		for (Vector2D vertex2 : obj2OutlineVectors) {
+		for (Vector2DLong vertex2 : obj2OutlineVectors) {
 			double obj2ProjectedVertex = vertex2.dotProduct(axis);
 			
 			if (obj2ProjectedVertex > obj2Max) {
@@ -68,7 +69,7 @@ public abstract class RotatablePolygonPhysicsObject extends RotatablePhysicsObje
 	}
 	
 	@Override
-	public Polygon getOutline(double extrapolateTime) {
+	public Polygon getOutline(long extrapolateTime) {
 		return IPolygon.vectorsToPolygon(getOutlineVectors(extrapolateTime));
 	}
 }

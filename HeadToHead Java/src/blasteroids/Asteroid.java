@@ -1,7 +1,9 @@
 package blasteroids;
 
 import geometry.Vector2D;
+import geometry.Vector2DLong;
 import headtohead.IScorable;
+import physics.PhysicsConstants;
 import physics.PhysicsObject;
 
 public class Asteroid extends PhysicsObject implements IScorable {
@@ -9,19 +11,20 @@ public class Asteroid extends PhysicsObject implements IScorable {
 	
 	// Physics constants
 	private final static double splitSpeedFactor = 1.8d;
-	private final static double splitSeparateSpeed = 10d;
+	private final static double splitSeparateSpeed = PhysicsConstants.velocity(10d);
 	private final static double bulletRelativeMass = 0.1d;
 	
 	private static final int SIZES = 5;
 	
-	private final static double[] radii = new double[SIZES];
+	private final static long[] radii = new long[SIZES];
 	private final static double[] masses = new double[SIZES];
 	private final static int[] scores = new int[SIZES];
 	
 	static {
 		for (int i = 0; i < SIZES; i++) {
-			radii[i] = 5.5d * Math.pow(2d, i);
-			masses[i] = Math.pow(radii[i], 2d);
+			double radius = 5.5d * Math.pow(2d, i);
+			radii[i] = PhysicsConstants.distance(radius);
+			masses[i] = Math.pow(radius, 2d);
 			scores[i] = (int)(100 * Math.pow(1.5d, 2 - i));
 		}
 	}
@@ -52,19 +55,25 @@ public class Asteroid extends PhysicsObject implements IScorable {
 	}
 	
 	// TODO Turn this into a function in PhysicsObject
-	public void bounceWrapped(PhysicsObject object2, double width, double height) {
+	public void bounceWrapped(PhysicsObject object2, long width, long height) {
 		// Unwrap
 		unwrapPositions(this, object2, width, height);
 		
 		// Push the objects away from each other to prevent tangling
-		double radiusSum = this.getRadius() + object2.getRadius();
-		Vector2D relativePosition = this.position.difference(object2.position);
+		Vector2DLong relativePosition = this.position.difference(object2.position);
+		long radiusSum = this.getRadius() + object2.getRadius();
 		double overlap = radiusSum - relativePosition.length();
 		if (overlap > 0d) {
-			relativePosition.setLength(0.5d * overlap);
+			final double minDistance = PhysicsConstants.distance(0.1d);
+			relativePosition.setLength(0.5d * overlap + minDistance);
 			this.position.add(relativePosition);
 			object2.position.subtract(relativePosition);
 		}
+		
+		Vector2D relativeVelocity = this.velocity.difference(object2.velocity);
+		double velocityAway = relativeVelocity.dotProduct(relativePosition);
+		System.out.println("velocityAway =\t" + velocityAway + "\t" + overlap);
+		if (velocityAway > 0d) return;
 		
 		// Do elastic collision
 		// TODO Make this more efficient
@@ -86,7 +95,7 @@ public class Asteroid extends PhysicsObject implements IScorable {
 		
 		double massTerm = 2d * mass2 / (mass1 + mass2);
 		
-		Vector2D position2Minus1 = obj1.position.difference(obj2.position);
+		Vector2DLong position2Minus1 = obj1.position.difference(obj2.position);
 		
 		double numerator = obj1.velocity.difference(obj2.velocity).dotProduct(position2Minus1);
 		double denominator = position2Minus1.lengthSquared();
@@ -109,7 +118,7 @@ public class Asteroid extends PhysicsObject implements IScorable {
 		
 		// Move this and the new asteroid away from each other
 		Vector2D positionChangeUnit = new Vector2D(-impactUnit.y, impactUnit.x);
-		Vector2D positionChange = positionChangeUnit.scalarProduct(getRadius());
+		Vector2DLong positionChange = new Vector2DLong(positionChangeUnit.scalarProduct(getRadius()));
 		otherHalf.position = this.position.difference(positionChange);
 		this.position.add(positionChange);
 		
@@ -127,7 +136,7 @@ public class Asteroid extends PhysicsObject implements IScorable {
 	}
 	
 	@Override
-	public double getRadius() {
+	public long getRadius() {
 		return radii[size];
 	}
 	

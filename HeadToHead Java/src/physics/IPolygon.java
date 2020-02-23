@@ -2,37 +2,37 @@ package physics;
 
 import java.awt.Polygon;
 
-import geometry.Vector2D;
+import geometry.Vector2DLong;
 
 public interface IPolygon {
 	
 	/**
-	 * Gets the physics outline of the object.
+	 * Gets the physics outline of the object (units of PhysicsObject.DISTANCE_UNIT).
 	 */
-	public Vector2D[] getOutlineVectors(double extrapolateTime);
+	public Vector2DLong[] getOutlineVectors(long extrapolateTime);
 	
 	/**
-	 * Gets the aesthetic outline of the object.
+	 * Gets the aesthetic outline of the object (units of pixels).
 	 */
-	public Polygon getOutline(double extrapolateTime);
+	public Polygon getOutline(long extrapolateTime);
 	
 	/**
 	 * Converts an array of position vectors to a java.awt.Polygon.
 	 * 
-	 * @param outline
+	 * @param physOutline
 	 * @return
 	 */
-	static Polygon vectorsToPolygon(Vector2D[] outline) {
-		int[] xPoints = new int[outline.length];
-		int[] yPoints = new int[outline.length];
-		for (int i = 0; i < outline.length; i++) {
-			xPoints[i] = (int)outline[i].x;
-			yPoints[i] = (int)outline[i].y;
+	static Polygon vectorsToPolygon(Vector2DLong[] physOutline) {
+		int[] xPoints = new int[physOutline.length];
+		int[] yPoints = new int[physOutline.length];
+		for (int i = 0; i < physOutline.length; i++) {
+			xPoints[i] = PhysicsConstants.distanceToPixels(physOutline[i].x);
+			yPoints[i] = PhysicsConstants.distanceToPixels(physOutline[i].y);
 		}
-		return new Polygon(xPoints, yPoints, outline.length);
+		return new Polygon(xPoints, yPoints, physOutline.length);
 	}
 	
-	public static Vector2D extrapolatePosition(PhysicsObject obj, double extrapolateTime) {
+	public static Vector2DLong extrapolatePosition(PhysicsObject obj, long extrapolateTime) {
 		return obj.position.sum(obj.velocity.scalarProduct(extrapolateTime));
 	}
 }

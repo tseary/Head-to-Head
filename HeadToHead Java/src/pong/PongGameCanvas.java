@@ -37,14 +37,14 @@ public class PongGameCanvas extends HeadToHeadGameCanvas {
 		// Create the paddles
 		paddles = new Paddle[2];
 		paddles[0] = new Paddle(0, 20, paddleWidth, paddleHeight);
-		paddles[1] = new Paddle(0, getGameHeight() - 20 - paddleHeight, paddleWidth, paddleHeight);
+		paddles[1] = new Paddle(0, getGameHeightPixels() - 20 - paddleHeight, paddleWidth, paddleHeight);
 	}
 	
 	@Override
 	public void newGame() {
 		// Center the paddles
 		for (int i = 0; i < paddles.length; i++) {
-			paddles[i].x = (getGameWidth() - paddles[i].w) / 2;
+			paddles[i].x = (getGameWidthPixels() - paddles[i].w) / 2;
 		}
 		
 		newRound();
@@ -100,7 +100,7 @@ public class PongGameCanvas extends HeadToHeadGameCanvas {
 			
 			// Stay on screen
 			paddles[i].x = Math.max(0,
-					Math.min(paddles[i].x, getGameWidth() - paddles[i].w));
+					Math.min(paddles[i].x, getGameWidthPixels() - paddles[i].w));
 		}
 		
 		// Move the ball
@@ -132,8 +132,8 @@ public class PongGameCanvas extends HeadToHeadGameCanvas {
 		if (xBall <= 0) {
 			xBall = 0;
 			vxBall = Math.abs(vxBall);
-		} else if ((xBall + ballSize) >= getGameWidth()) {
-			xBall = getGameWidth() - ballSize;
+		} else if ((xBall + ballSize) >= getGameWidthPixels()) {
+			xBall = getGameWidthPixels() - ballSize;
 			vxBall = -Math.abs(vxBall);
 		}
 		
@@ -190,7 +190,7 @@ public class PongGameCanvas extends HeadToHeadGameCanvas {
 		
 		// Point
 		boolean player0Lost = yBall <= 0;
-		boolean player1Lost = yBall + ballSize >= getGameHeight();
+		boolean player1Lost = yBall + ballSize >= getGameHeightPixels();
 		if (player0Lost) {
 			server = 1;
 			players[1].score++;
@@ -198,7 +198,7 @@ public class PongGameCanvas extends HeadToHeadGameCanvas {
 		} else if (player1Lost) {
 			server = 0;
 			players[0].score++;
-			yBall = getGameHeight() - ballSize;
+			yBall = getGameHeightPixels() - ballSize;
 		}
 		if (player0Lost || player1Lost) {
 			// vxBall = 0;
@@ -211,7 +211,7 @@ public class PongGameCanvas extends HeadToHeadGameCanvas {
 	public void drawVideoFrame(Graphics g, double extrapolate) {
 		// Clear the frame (transparent)
 		g.setColor(Color.DARK_GRAY.darker().darker());
-		g.fillRect(0, 0, getGameWidth(), getGameHeight());
+		g.fillRect(0, 0, getGameWidthPixels(), getGameHeightPixels());
 		
 		// Draw the paddles
 		for (int i = 0; i < players.length; i++) {

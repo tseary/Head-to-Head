@@ -1,16 +1,16 @@
 package physics;
 
 public abstract class AgedPhysicsObject extends PhysicsObject {
-	/** The object's age in physics seconds. */
-	protected double age = 0d;
+	/** The object's age in physics time units. */
+	protected long age = 0;
 	
 	@Override
-	public void move(double deltaTime) {
+	public void move(long deltaTime) {
 		super.move(deltaTime);
 		age += deltaTime;
 	}
 	
-	public double getAge() {
+	public long getAge() {
 		return age;
 	}
 }

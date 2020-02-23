@@ -28,6 +28,7 @@ import button.ArcadeButton;
 import button.IButton;
 import button.InputSource;
 import button.VirtualButton;
+import physics.PhysicsConstants;
 import sound.SoundPlayer;
 
 public abstract class HeadToHeadGameCanvas extends Canvas
@@ -272,8 +273,12 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	 * 
 	 * @return
 	 */
-	protected int getGameWidth() {
+	protected int getGameWidthPixels() {
 		return gameWidth;
+	}
+	
+	protected long getGameWidthPhysics() {
+		return PhysicsConstants.distance(gameWidth);
 	}
 	
 	/**
@@ -281,8 +286,12 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 	 * 
 	 * @return
 	 */
-	protected int getGameHeight() {
+	protected int getGameHeightPixels() {
 		return gameHeight;
+	}
+	
+	protected long getGameHeightPhysics() {
+		return PhysicsConstants.distance(gameHeight);
 	}
 	
 	/**

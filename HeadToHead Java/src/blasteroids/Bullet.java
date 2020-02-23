@@ -3,6 +3,7 @@ package blasteroids;
 import headtohead.IOwnable;
 import headtohead.Player;
 import physics.AgedPhysicsObject;
+import physics.PhysicsConstants;
 
 public class Bullet extends AgedPhysicsObject implements IOwnable {
 	
@@ -17,8 +18,8 @@ public class Bullet extends AgedPhysicsObject implements IOwnable {
 	}
 	
 	@Override
-	public double getRadius() {
-		return 1d;
+	public long getRadius() {
+		return PhysicsConstants.distance(1);
 	}
 	
 	@Override
