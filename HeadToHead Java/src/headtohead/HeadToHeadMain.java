@@ -64,6 +64,7 @@ public class HeadToHeadMain {
 		doubleBuffer(gameCanvas);
 		
 		// Run the game forever
+		Performance.clear();
 		try {
 			do {
 				gameCanvas.newGame();
