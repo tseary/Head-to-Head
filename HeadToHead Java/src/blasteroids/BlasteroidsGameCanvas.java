@@ -188,10 +188,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 				// Test the position and reroll if it's invalid
 				validPosition = true;
 				for (int p = 0; p < spaceships.length; p++) {
-					long distSqr = asteroid.distanceSquaredTo(spaceships[p]);
-					System.out.println("distSqr = " + distSqr);
-					if (distSqr > minRadiusSqr) continue;
-					System.out.println("reroll");
+					if (asteroid.distanceSquaredTo(spaceships[p]) > minRadiusSqr) continue;
 					validPosition = false;
 					break;
 				}
@@ -545,10 +542,6 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	}
 	
 	private void collideAsteroidToAsteroid() {
-		for (Asteroid asteroid : asteroids) {
-			asteroid.color = Color.GRAY;
-		}
-		
 		// Calculate asteroid-asteroid collisions
 		for (int a = 0; a < asteroids.size() - 1; a++) {
 			Asteroid asteroidA = asteroids.get(a);
@@ -558,8 +551,6 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 					// Asteroids bounce off each other
 					sound.request(SoundName.BUMP);
 					asteroidA.bounceWrapped(asteroidB, getGameWidthPhysics(), getGameHeightPhysics());
-					asteroidA.color = Color.MAGENTA;
-					asteroidB.color = Color.CYAN;
 				}
 			}
 		}
@@ -800,7 +791,6 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		int yDraw = (int)drawPositionPx.y - radius;
 		int diameter = 2 * radius;
 		
-		g.setColor(obj.color);// DEBUG
 		g.fillOval(xDraw, yDraw, diameter, diameter);
 		g.drawOval(xDraw, yDraw, diameter, diameter);
 		
@@ -811,18 +801,16 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 		int xOffset = 0, yOffset = 0;
 		
 		// Draw wrapped copies of the object
-		boolean nearLeft = drawPositionPx.x < obj.getRadius(),
-				nearRight = drawPositionPx.x > getGameWidthPixels() -
-						PhysicsConstants.distanceToPixels(obj.getRadius());
+		boolean nearLeft = drawPositionPx.x < radius,
+				nearRight = drawPositionPx.x > getGameWidthPixels() - radius;
 		if (nearLeft) {
 			xOffset = getGameWidthPixels();
 		} else if (nearRight) {
 			xOffset = -getGameWidthPixels();
 		}
 		
-		boolean nearTop = drawPositionPx.y < obj.getRadius(),
-				nearBottom = drawPositionPx.y > getGameHeightPixels() -
-						PhysicsConstants.distanceToPixels(obj.getRadius());
+		boolean nearTop = drawPositionPx.y < radius,
+				nearBottom = drawPositionPx.y > getGameHeightPixels() - radius;
 		if (nearTop) {
 			yOffset = getGameHeightPixels();
 		} else if (nearBottom) {

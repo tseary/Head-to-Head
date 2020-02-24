@@ -58,7 +58,8 @@ public final class PhysicsConstants {
 	}
 	
 	public static Vector2DLong distanceToPixels(Vector2DLong v) {
-		return new Vector2DLong(PhysicsConstants.DISTANCE_UNIT_INV * v.x, PhysicsConstants.DISTANCE_UNIT_INV * v.y);
+		return new Vector2DLong(PhysicsConstants.DISTANCE_UNIT_INV * v.x,
+				PhysicsConstants.DISTANCE_UNIT_INV * v.y);
 	}
 	
 	public static int distanceToPixels(long d) {

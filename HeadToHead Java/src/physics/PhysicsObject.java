@@ -1,15 +1,11 @@
 package physics;
 
-import java.awt.Color;
-
 import geometry.Vector2D;
 import geometry.Vector2DLong;
 
 public abstract class PhysicsObject {
 	public Vector2DLong position;
 	public Vector2D velocity, acceleration;
-	
-	public Color color = Color.GRAY;
 	
 	public PhysicsObject() {
 		position = new Vector2DLong();
