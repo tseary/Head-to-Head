@@ -173,9 +173,9 @@ public class Tank extends RotatableRectanglePhysicsObject implements IOwnable, I
 		Vector2DLong[] shipOutlineMidpoints = new Vector2DLong[shipOutline.length];
 		Collection<Fragment> fragments = new ArrayList<Fragment>(shipOutline.length + 1);
 		
-		// The proportional speed at which fragments move away from the ship center
-		final double fragmentSplitSpeedMax = 10d;
-		final double fragmentRotationSpeedMax = 20d;
+		// The proportional speed at which fragments move away from the tank center
+		final double fragmentSplitSpeedMax = PhysicsConstants.integral(10d);
+		final double fragmentRotationSpeedMax = PhysicsConstants.angularVelocity(10d);
 		
 		Random random = new Random();
 		
@@ -183,21 +183,35 @@ public class Tank extends RotatableRectanglePhysicsObject implements IOwnable, I
 		double headAngle = this.angle + Math.PI;
 		Fragment fragmentMan = new Fragment(new Vector2DLong[] {
 				this.position,	// Shoulder
-				this.position.sum(new Vector2D(2d, headAngle, true)),	// Head
+				this.position.sum(new Vector2DLong(
+						PhysicsConstants.distance(2d), headAngle, true)),	// Head
 				this.position,	// Shoulder
-				this.position.sum(new Vector2D(3.5d, headAngle + 0.45d * Math.PI, true)),	// Hand
-				this.position.sum(new Vector2D(0.3d, headAngle + 0.6d * Math.PI, true)),	// Armpit
-				this.position.sum(new Vector2D(5d, headAngle + 0.9d * Math.PI, true)),		// Leg
-				this.position.sum(new Vector2D(1.5d, headAngle + Math.PI, true)),			// Crotch
-				this.position.sum(new Vector2D(5d, headAngle + 1.1d * Math.PI, true)),		// Leg
-				this.position.sum(new Vector2D(0.3d, headAngle + 1.4d * Math.PI, true)),	// Armpit
-				this.position.sum(new Vector2D(3.5d, headAngle + 1.55d * Math.PI, true)) },	// Hand
+				this.position.sum(new Vector2DLong(
+						PhysicsConstants.distance(3.5d), headAngle + 0.45d * Math.PI, true)),	// Hand
+				this.position.sum(new Vector2DLong(
+						PhysicsConstants.distance(0.3d), headAngle + 0.6d * Math.PI, true)),	// Armpit
+				this.position.sum(new Vector2DLong(
+						PhysicsConstants.distance(5d), headAngle + 0.9d * Math.PI, true)),		// Leg
+				this.position.sum(new Vector2DLong(
+						PhysicsConstants.distance(1.5d), headAngle + Math.PI, true)),			// Crotch
+				this.position.sum(new Vector2DLong(
+						PhysicsConstants.distance(5d), headAngle + 1.1d * Math.PI, true)),		// Leg
+				this.position.sum(new Vector2DLong(
+						PhysicsConstants.distance(0.3d), headAngle + 1.4d * Math.PI, true)),	// Armpit
+				this.position.sum(new Vector2DLong(
+						PhysicsConstants.distance(3.5d), headAngle + 1.55d * Math.PI, true)) },	// Hand
 				null);
 		
 		fragmentMan.velocity = this.velocity.scalarProduct(0.3d);
-		// fragmentMan.angularVelocity = fragmentRotationSpeedMax * (2d * random.nextDouble() - 1d);
+		fragmentMan.angularVelocity = fragmentRotationSpeedMax * (2d * random.nextDouble() - 1d);
 		
 		fragments.add(fragmentMan);
+		
+		// Calculate midpoints
+		for (int i = 0; i < shipOutlineMidpoints.length; i++) {
+			shipOutlineMidpoints[i] = shipOutline[i].sum(
+					shipOutline[(i + 1) % shipOutline.length]).scalarProduct(0.5d);
+		}
 		
 		// Calculate midpoints
 		for (int i = 0; i < shipOutlineMidpoints.length; i++) {
@@ -218,9 +232,7 @@ public class Tank extends RotatableRectanglePhysicsObject implements IOwnable, I
 			fragment.velocity = this.velocity.sum(
 					shipOutline[i].difference(this.position).scalarProduct(
 							fragmentSplitSpeedMax * random.nextDouble()));
-			fragment.acceleration = fragment.velocity.scalarProduct(-2d);
 			fragment.angularVelocity = fragmentRotationSpeedMax * (2d * random.nextDouble() - 1d);
-			fragment.angularAcceleration = fragment.angularVelocity * -2d;
 			
 			fragments.add(fragment);
 		}
