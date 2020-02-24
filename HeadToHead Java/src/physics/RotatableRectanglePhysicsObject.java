@@ -16,8 +16,10 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 	protected Vector2DLong size;
 	protected long boundingRadius;
 	
-	// The angle spanned by the top face of the rectangle.
-	// The size vector rotated by this angle equals the size vector in quadrant 2.
+	/**
+	 * The angle spanned by the top face of the rectangle.
+	 * The size vector rotated by this angle equals the size vector in quadrant 2.
+	 */
 	private double sizeQuad2Angle;
 	
 	public RotatableRectanglePhysicsObject(long width, long height) {
@@ -98,8 +100,8 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 	}
 	
 	/**
-	 * Creates a unit vector pointing from the surface of this rectangle to the point,
-	 * and a position vector indicating the nearest point on the surface to the given point.
+	 * Creates a position vector indicating the nearest point on the surface to the given point,
+	 * and a unit vector pointing outward from the surface of this rectangle.
 	 * @param point
 	 * @return The returned vector is guaranteed non-zero.
 	 */
@@ -119,11 +121,13 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 			if (aboveOutside) {
 				// Above right (quad 1)
 				surfaceNormal.position = position.sum(size.getRotated(angle));
-				surfaceNormal.vector = point.difference(surfaceNormal.position).toUnit();
+				// surfaceNormal.vector = point.difference(surfaceNormal.position).toUnit();
+				surfaceNormal.vector = new Vector2D(1d, angle + 0.25d * Math.PI, true);
 			} else if (belowOutside) {
 				// Below right (quad 4)
 				surfaceNormal.position = position.sum(size.getRotated(angle + Math.PI + sizeQuad2Angle));
-				surfaceNormal.vector = point.difference(surfaceNormal.position).toUnit();
+				// surfaceNormal.vector = point.difference(surfaceNormal.position).toUnit();
+				surfaceNormal.vector = new Vector2D(1d, angle + 1.75d * Math.PI, true);
 			} else {
 				// Right side
 				Vector2D surfacePosInRectCoords = new Vector2D(size.x, pointRel.y);
@@ -135,11 +139,13 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 			if (aboveOutside) {
 				// Above left (quad 2)
 				surfaceNormal.position = position.sum(size.getRotated(angle + sizeQuad2Angle));
-				surfaceNormal.vector = point.difference(surfaceNormal.position).toUnit();
+				// surfaceNormal.vector = point.difference(surfaceNormal.position).toUnit();
+				surfaceNormal.vector = new Vector2D(1d, angle + 0.75d * Math.PI, true);
 			} else if (belowOutside) {
 				// Below left (quad 3)
 				surfaceNormal.position = position.sum(size.getRotated(angle + Math.PI));
-				surfaceNormal.vector = point.difference(surfaceNormal.position).toUnit();
+				// surfaceNormal.vector = point.difference(surfaceNormal.position).toUnit();
+				surfaceNormal.vector = new Vector2D(1d, angle + 1.25d * Math.PI, true);
 			} else {
 				// Left side
 				Vector2D surfacePosInRectCoords = new Vector2D(-size.x, pointRel.y);
@@ -161,7 +167,7 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 			} else {
 				// Inside rectangle
 				// TODO
-				/*boolean rightCenter = pointRel.x >= 0d,
+				boolean rightCenter = pointRel.x >= 0d,
 						aboveCenter = pointRel.y >= 0d;
 				
 				double distanceToXSide = size.x - Math.abs(pointRel.x),
@@ -171,22 +177,38 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 				if (closeToXSide) {
 					if (rightCenter) {
 						// TODO same as right side
+						// Right side
+						Vector2D surfacePosInRectCoords = new Vector2D(size.x, pointRel.y);
+						surfaceNormal.position = position.sum(surfacePosInRectCoords.getRotated(angle));
+						surfaceNormal.vector = new Vector2D(1d, angle, true);
 					} else {
 						// TODO same as left side
+						// Left side
+						Vector2D surfacePosInRectCoords = new Vector2D(-size.x, pointRel.y);
+						surfaceNormal.position = position.sum(surfacePosInRectCoords.getRotated(angle));
+						surfaceNormal.vector = new Vector2D(-1d, angle, true);
 					}
 				} else {
 					if (aboveCenter) {
 						// TODO same as top side
+						// Above middle
+						Vector2D surfacePosInRectCoords = new Vector2D(pointRel.x, size.y);
+						surfaceNormal.position = position.sum(surfacePosInRectCoords.getRotated(angle));
+						surfaceNormal.vector = new Vector2D(1d, angle + 0.5d * Math.PI, true);
 					} else {
 						// TODO same as bottom side
+						// Below middle
+						Vector2D surfacePosInRectCoords = new Vector2D(pointRel.x, -size.y);
+						surfaceNormal.position = position.sum(surfacePosInRectCoords.getRotated(angle));
+						surfaceNormal.vector = new Vector2D(1d, angle - 0.5d * Math.PI, true);
 					}
-				}*/
+				}
 				
 				// PLACEHOLDER
 				// surfaceNormal position equals point,
 				// surfaceNormal vector points away from rectangle center
-				surfaceNormal.position = point.clone();
-				surfaceNormal.vector = point.difference(position).toUnit();
+				/*surfaceNormal.position = point.clone();
+				surfaceNormal.vector = point.difference(position).toUnit();*/
 			}
 		}
 		

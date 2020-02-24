@@ -9,6 +9,8 @@ public class Bullet extends AgedPhysicsObject implements IOwnable {
 	
 	private Player owner;
 	
+	private static double radius = PhysicsConstants.distance(1d);
+	
 	public Bullet(Player owner) {
 		this.owner = owner;
 	}
@@ -19,11 +21,15 @@ public class Bullet extends AgedPhysicsObject implements IOwnable {
 	
 	@Override
 	public long getRadius() {
-		return PhysicsConstants.distance(1);
+		return radius;
 	}
 	
 	@Override
 	public double getMass() {
 		return 1d;
+	}
+	
+	public static void setRadius(double radius) {
+		Bullet.radius = radius;
 	}
 }

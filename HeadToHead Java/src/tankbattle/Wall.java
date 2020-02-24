@@ -9,7 +9,15 @@ public class Wall extends RotatableRectanglePhysicsObject {
 	Vector2D[] outlineVectorsRelative;
 	
 	public Wall() {
-		super(PhysicsConstants.distance(100), PhysicsConstants.distance(10));
+		this(PhysicsConstants.distance(100));
+	}
+	
+	public Wall(double length) {
+		this(length, PhysicsConstants.distance(10));
+	}
+	
+	public Wall(double length, double width) {
+		super(length, width);
 	}
 	
 	public boolean isInside(Vector2D point) {

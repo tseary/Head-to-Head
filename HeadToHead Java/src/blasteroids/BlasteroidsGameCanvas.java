@@ -876,12 +876,7 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 	
 	private static void drawScoreMarker(Graphics g, ScoreMarker scoreMarker) {
 		// Set the color
-		Player owner = scoreMarker.getOwner();
-		if (owner != null) {
-			g.setColor(owner.getColor());
-		} else {
-			g.setColor(Color.WHITE);
-		}
+		g.setColor(getOwnerColor(scoreMarker));
 		
 		// Center the text
 		int xOffset = g.getFontMetrics().stringWidth(scoreMarker.value) / 2,

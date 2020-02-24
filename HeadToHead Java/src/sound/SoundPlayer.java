@@ -4,37 +4,22 @@ import java.net.URL;
 
 public class SoundPlayer {
 	
-	private URL[] soundURLs;
 	private boolean[] soundRequests;
 	
 	/**
-	 * An array of lists of audio clips.
+	 * An array of audio clips.
 	 * The members of the array may be null if the sound has not been loaded yet.
-	 * Each list contains one or more clips containing the same sound.
+	 * Each VoiceSet contains one or more clips containing the same sound.
 	 * The clips are rewound as they finish playing by the LineListener.
-	 * If a sound is already playing and needs to be played again simultaneously,
-	 * a new instance of the clip is added to the corresponding list.
 	 */
 	private VoiceSet[] voiceSets;
 	
 	private boolean soundOn = true;
 	
 	public SoundPlayer() {
-		SoundName[] values = SoundName.values();
-		
-		soundRequests = new boolean[values.length];
-		soundURLs = new URL[values.length];
-		
-		voiceSets = new VoiceSet[values.length];
-		
-		for (SoundName value : values) {
-			// Note: URL path is case-sensitive in exported jar
-			String path = "/soundfx/" + value.name().toLowerCase() + ".wav";
-			soundURLs[value.ordinal()] = SoundPlayer.class.getResource(path);
-			if (soundURLs[value.ordinal()] == null) {
-				System.out.println("Failed to load sound URL \"" + path + "\"");
-			}
-		}
+		int soundCount = SoundName.values().length;
+		soundRequests = new boolean[soundCount];
+		voiceSets = new VoiceSet[soundCount];
 	}
 	
 	public void setSoundOn(boolean soundOn) {
@@ -56,31 +41,55 @@ public class SoundPlayer {
 			clearRequests();
 			return;
 		}
-		for (int i = 0; i < soundRequests.length; i++) {
-			if (!soundRequests[i]) continue;
-			playSound(i);
-			soundRequests[i] = false;
+		for (SoundName soundName : SoundName.values()) {
+			int i = soundName.ordinal();
+			if (soundRequests[i]) {
+				playSound(soundName);
+				soundRequests[i] = false;
+			} else if (soundName.getType() == SoundName.TYPE_LOOPING) {
+				stopSound(soundName);
+			}
 		}
 	}
 	
 	public void playSound(SoundName soundName) {
-		playSound(soundName.ordinal());
-	}
-	
-	public void playSound(int soundIndex) {
-		// Fail if the sound doesn't exist
-		if (soundIndex < 0 || soundIndex > soundURLs.length) {
-			System.err.println("Sound doesn't exist: " + soundIndex);
-			return;
-		}
+		int soundIndex = soundName.ordinal();
 		
 		// Lazily create lists
 		// TODO Use the correct VoiceSet type
 		if (voiceSets[soundIndex] == null) {
-			voiceSets[soundIndex] = new MultiVoiceSet(soundURLs[soundIndex]);
+			VoiceSet voiceSet;
+			URL url = getSoundURL(soundName);
+			switch (soundName.getType()) {
+				case SoundName.TYPE_SINGLE:
+					voiceSet = new SingleVoiceSet(url);
+					break;
+				default:
+				case SoundName.TYPE_MULTI:
+					voiceSet = new MultiVoiceSet(url);
+					break;
+				case SoundName.TYPE_LOOPING:
+					voiceSet = new LoopingVoiceSet(url);
+					break;
+			}
+			voiceSets[soundIndex] = voiceSet;
 		}
 		
 		// Play the sound
 		voiceSets[soundIndex].play();
+	}
+	
+	public void stopSound(SoundName soundName) {
+		int soundIndex = soundName.ordinal();
+		
+		if (voiceSets[soundIndex] == null) return;
+		
+		// Stop the sound
+		voiceSets[soundIndex].stop();
+	}
+	
+	private static URL getSoundURL(SoundName soundName) {
+		String path = "/soundfx/" + soundName.name().toLowerCase() + ".wav";
+		return SoundPlayer.class.getResource(path);
 	}
 }

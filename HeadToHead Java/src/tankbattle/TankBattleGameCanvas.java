@@ -38,7 +38,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	private static final double tankDrag = PhysicsConstants.integral(2d);
 	private static final double tankSteeringAccel = PhysicsConstants.angularAcceleration(8d);
 	private static final double tankSteeringDrag = PhysicsConstants.integral(6d);
-	private static final double bulletMaxAge = PhysicsConstants.time(2.333d);
+	private static final double bulletMaxAge = PhysicsConstants.time(3.333d);
 	protected long deltaTimeAlive, deltaTimeDead;
 	
 	@Override
@@ -83,6 +83,8 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		bullets = new ArrayList<Bullet>();
 		fragments = new ArrayList<Fragment>();
 		
+		Bullet.setRadius(2d);
+		
 		lastShotCounters = new int[players.length];
 		shootWasPressed = new boolean[players.length];
 		
@@ -116,8 +118,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	
 	@Override
 	protected int[] getLeftHandedButtonRemap() {
-		// TODO
-		return new int[] { 1, 2, 0 };
+		return new int[] { 0, 1, 2 };
 	}
 	
 	@Override
@@ -174,40 +175,62 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		scoreMarkers.clear();
 		
 		// Place walls
-		Random random = new Random();
-		for (int i = 0; i < 20; i++) {
-			// Choose a random wall postion, not to close to any tanks
-			Vector2DLong wallPosition;
-			double minDistanceSqrToTank;
-			do {
-				// Choose a random wall position
-				wallPosition = new Vector2DLong(random.nextDouble() * getGameWidthPhysics(),
-						random.nextDouble() * getGameHeightPhysics());
-				
-				// Calculate the distance to the closest tank
-				minDistanceSqrToTank = Double.MAX_VALUE;
-				for (Tank tank : tanks) {
-					double distanceSqr = tank.position.difference(wallPosition).lengthSquared();
-					minDistanceSqrToTank = Math.min(minDistanceSqrToTank, distanceSqr);
-				}
-			} while (minDistanceSqrToTank < 10000d);
-			
-			// Create the wall
-			Wall wall = new Wall();
-			wall.position = wallPosition;
-			
-			// Rotate the wall randomly
-			int wallAngle = random.nextInt(4);
-			wall.angle = wallAngle * Math.PI / 4d;
-			
-			walls.add(wall);
-		}
+		createWalls();
 		
 		// Reset the round counters
 		roundStartCounter = 0;
 		roundOverCounter = 0;
 		
 		round++;
+	}
+	
+	private void createWalls() {
+		Random random = new Random();
+		
+		final int MINIMUM_WALLS = 15;
+		final double wallLength = 100d,
+				wallWidth = 10d,
+				wallSpacing = (wallLength - wallWidth) / 2d;
+		
+		do {
+			// Create building
+			// Choose a random position, not too close to any tanks
+			Vector2D buildingCenter = randomPositionNotNearTank(random, 100d);
+			
+			// Rotate the building randomly
+			int angleIndex = random.nextInt(6);
+			double buildingAngle = angleIndex * Math.PI / 6d;
+			
+			// Create walls
+			for (int i = 0; i < 3; i++) {
+				Wall wall = new Wall(random.nextDouble() < 0.30d ? wallLength / 2d : wallLength, wallWidth);
+				double angle = buildingAngle + i * Math.PI / 2d;
+				wall.position = buildingCenter.sum(
+						new Vector2D(wallSpacing, angle, true));
+				wall.angle = angle + Math.PI / 2d;
+				walls.add(wall);
+			}
+			
+		} while (walls.size() < MINIMUM_WALLS);
+	}
+	
+	private Vector2D randomPositionNotNearTank(Random random, double clearance) {
+		Vector2D position;
+		double minDistanceSqrToTank,
+				clearanceSqr = clearance * clearance;
+		do {
+			// Choose a random wall position
+			position = new Vector2D(random.nextDouble() * getGameWidth(),
+					random.nextDouble() * getGameHeight());
+			
+			// Calculate the distance to the closest tank
+			minDistanceSqrToTank = Double.MAX_VALUE;
+			for (Tank tank : tanks) {
+				double distanceSqr = tank.position.difference(position).lengthSquared();
+				minDistanceSqrToTank = Math.min(minDistanceSqrToTank, distanceSqr);
+			}
+		} while (minDistanceSqrToTank < clearanceSqr);
+		return position;
 	}
 	
 	/**
@@ -388,6 +411,8 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 				sound.request(SoundName.ENGINE_2);
 			} else if (unitNoise > 0.2d) {
 				sound.request(SoundName.ENGINE_1);
+			} else if (tank.isAlive()) {
+				sound.request(SoundName.ENGINE_IDLE);
 			}
 			
 			tank.wrapPosition(getGameWidthPhysics(), getGameHeightPhysics());
@@ -459,11 +484,11 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 					continue;
 				}
 				
-				// Tank is touching wall
-				// Janky "push off" implementation results in weird lack of friction
-				// TODO Calculate normal force or something
-				tank.position = wall.position.sum(
-						tank.position.difference(wall.position).scalarProduct(1.05d));
+				// Tank is touching wall - push off in the normal direction
+				SpaceVector2D surfaceNormal = wall.getSurfaceNormal(tank.position);
+				tank.position.add(surfaceNormal.vector);
+				
+				// Stop tank
 				tank.velocity = new Vector2D(0d, 0d);
 			}
 		}
@@ -509,13 +534,15 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 					// Get the normal vector from the wall to the bullet
 					SpaceVector2DLong surfaceNormal = wall.getSurfaceNormal(bullet.position);
 					
-					// Reflect the velocity off the normal
+					// Reflect the velocity about the normal
 					Vector2D v1 = bullet.velocity,
 							v2 = surfaceNormal.vector;
-					double k = (v1.dotProduct(v2)) / (v2.dotProduct(v2));
-					Vector2D vRefl = v1.scalarProduct(-1d).sum(v2.scalarProduct(2d * k));
+					double k = v1.dotProduct(v2) / v2.dotProduct(v2);
+					bullet.velocity.add(v2.scalarProduct(-2d * k));
 					
-					bullet.velocity = vRefl;
+					// Put the bullet on the surface of the wall
+					bullet.position = surfaceNormal.position.sum(
+							surfaceNormal.vector.scalarProduct(bullet.getRadius()));
 				}
 			}
 		}
@@ -531,17 +558,13 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 			for (int i = 0; i < bullets.size(); i++) {
 				Bullet bullet = bullets.get(i);
 				
-				// No friendly fire
-				if (bullet.getOwner() == tank.getOwner()) {
-					continue;
-				}
-				
-				// Bullet hits the spaceship
-				if (bullet.isTouching(tank)) {
+				// Bullet hits the tank
+				if (tank.isTouching(bullet)) {
 					tank.takeHit();
 					
 					// Bullet owner gets points
-					givePoints(bullet, tank);
+					// (or loses point for friendly fire)
+					scorePoints(bullet, tank);
 					
 					if (tank.isAlive()) {
 						sound.request(SoundName.PWANK_E);
@@ -562,38 +585,30 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		sound.request(SoundName.EXPLODE);
 	}
 	
-	private void givePoints(IOwnable playerObj, IScorable scoreObj) {
+	private void scorePoints(IOwnable playerObj, IScorable scoreObj) {
 		Player owner = playerObj.getOwner();
 		if (owner == null) {
 			return;
 		}
 		
+		// Determine if the player scored against themself
+		boolean friendlyFire = false;
+		if (scoreObj instanceof IOwnable) {
+			Player scoredAgainst = ((IOwnable)scoreObj).getOwner();
+			friendlyFire = owner == scoredAgainst;	// Self-own
+		}
+		
 		// Add points and update score marker
 		int score = scoreObj.getScore();
+		if (friendlyFire) score = -score;
+		
 		setPlayerScore(owner, owner.score + score);
 		
 		// Create a score marker if the object is physical
 		if (scoreObj instanceof PhysicsObject) {
 			PhysicsObject physicsObj = (PhysicsObject)scoreObj;
 			scoreMarkers.add(new ScoreMarker(String.valueOf(score),
-					physicsObj.position, owner, isPlayerInverted(owner)));
-		}
-	}
-	
-	private void takePoints(IOwnable playerObj, IScorable scoreObj, PhysicsObject physicsObj) {
-		Player owner = playerObj.getOwner();
-		if (owner == null) {
-			return;
-		}
-		
-		// Subtract points and update score marker
-		int score = -scoreObj.getScore() / 2;
-		setPlayerScore(owner, owner.score + score);
-		
-		// Create a score marker if the object is physical
-		if (physicsObj != null) {
-			scoreMarkers.add(new ScoreMarker(String.valueOf(score),
-					physicsObj.position, null/*owner*/, isPlayerInverted(owner)));
+					physicsObj.position, friendlyFire ? null : owner, isPlayerInverted(owner)));
 		}
 	}
 	
@@ -709,23 +724,22 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 			
 			for (int h = 0; h < tanks[i].getHealth(); h++) {
 				int xHealth = xPerHealth * h;
-				Polygon triangle = new Polygon(
+				Polygon rectangle = new Polygon(
 						new int[] { xFirst + xHealth,
 								xFirst + xHealth,
 								xFirst + rectWidth + xHealth,
 								xFirst + rectWidth + xHealth },
 						new int[] { yBack, yFront, yFront, yBack }, 4);
-				// g.fillPolygon(triangle);
-				g.drawPolygon(triangle);
+				g.drawPolygon(rectangle);
 			}
 			
 			// DEBUG
 			// Draw a line connecting the tanks
-			if (DebugMode.isEnabled()) {
+			/*if (DebugMode.isEnabled()) {
 				g.setColor(Color.BLUE);
 				g.drawLine((int)tanks[0].position.x, (int)tanks[0].position.y,
 						(int)tanks[1].position.x, (int)tanks[1].position.y);
-			}
+			}*/
 		}
 		
 		// Draw ammo markers
@@ -886,12 +900,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	
 	private static void drawScoreMarker(Graphics g, ScoreMarker scoreMarker) {
 		// Set the color
-		Player owner = scoreMarker.getOwner();
-		if (owner != null) {
-			g.setColor(owner.getColor());
-		} else {
-			g.setColor(Color.WHITE);
-		}
+		g.setColor(getOwnerColor(scoreMarker));
 		
 		// Center the text
 		int xOffset = g.getFontMetrics().stringWidth(scoreMarker.value) / 2,

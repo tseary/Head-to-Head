@@ -6,7 +6,7 @@ import javax.sound.sampled.Clip;
 
 public class SingleVoiceSet extends VoiceSet {
 	
-	private Clip voice;
+	protected Clip voice;
 	
 	public SingleVoiceSet(URL url) {
 		voice = loadClip(url);
@@ -14,6 +14,13 @@ public class SingleVoiceSet extends VoiceSet {
 	
 	@Override
 	public void play() {
+		if (voice == null) return;
 		voice.start();
+	}
+	
+	@Override
+	public void stop() {
+		if (voice == null) return;
+		voice.stop();
 	}
 }
