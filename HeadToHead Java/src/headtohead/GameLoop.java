@@ -5,6 +5,8 @@ public class GameLoop implements Runnable {
 	private HeadToHeadGameCanvas game;
 	private long minRenderMillis = 1000 / 60;	// Default 60 FPS
 	
+	private double performanceMeasure = 0d;
+	
 	// DEBUG
 	// private double averageFrameMillis = 0d;
 	// private final double smoothing = 0.95d;
@@ -27,9 +29,6 @@ public class GameLoop implements Runnable {
 		long previous = System.currentTimeMillis();
 		long lagMillis = 0;
 		
-		// DEBUG
-		// int counter = 0;
-		
 		while (!Thread.interrupted()) {
 			long current = System.currentTimeMillis();
 			long elapsed = current - previous;
@@ -40,7 +39,12 @@ public class GameLoop implements Runnable {
 			
 			// Do physics ticks until we're caught up
 			while (lagMillis >= PHYSICS_TICK_MILLIS) {
+				long startTime = System.nanoTime();
 				game.physicsTick();
+				long endTime = System.nanoTime();
+				performanceMeasure *= 0.99d;
+				performanceMeasure += 0.01d * (endTime - startTime);
+				System.out.println(performanceMeasure + " ns");
 				lagMillis -= PHYSICS_TICK_MILLIS;
 			}
 			
