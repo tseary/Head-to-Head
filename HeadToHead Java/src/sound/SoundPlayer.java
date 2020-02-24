@@ -2,6 +2,8 @@ package sound;
 
 import java.net.URL;
 
+import headtohead.Performance;
+
 public class SoundPlayer {
 	
 	private boolean[] soundRequests;
@@ -41,6 +43,9 @@ public class SoundPlayer {
 			clearRequests();
 			return;
 		}
+		
+		Performance.measure("play sounds");
+		
 		for (SoundName soundName : SoundName.values()) {
 			int i = soundName.ordinal();
 			if (soundRequests[i]) {

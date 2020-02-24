@@ -15,7 +15,6 @@ import geometry.Vector2DLong;
 import headtohead.HeadToHeadGameCanvas;
 import headtohead.IOwnable;
 import headtohead.IScorable;
-import headtohead.Performance;
 import headtohead.Player;
 import physics.IPolygon;
 import physics.PhysicsConstants;
@@ -248,7 +247,6 @@ public class BlasteroidsGameCanvas extends HeadToHeadGameCanvas {
 			}
 			
 			// Play all the sounds that were requested during this tick
-			Performance.measure("play sounds");
 			sound.playRequestedSounds();
 		} catch (Exception ex) {
 			ex.printStackTrace();
