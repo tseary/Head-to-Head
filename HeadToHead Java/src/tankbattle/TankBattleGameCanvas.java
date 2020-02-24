@@ -33,12 +33,12 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	
 	// Physics constants
 	private static final int gameTimerFPS = 60;
-	private static final double tankMaxSpeed = 70d;
-	private static final double tankThrust = 180d;
-	private static final double tankDrag = 2d;
-	private static final double tankSteeringAccel = 8d;
-	private static final double tankSteeringDrag = 6d;
-	private static final double bulletMaxAge = 2.333d;
+	private static final double tankMaxSpeed = PhysicsConstants.velocity(70d);
+	private static final double tankThrust = PhysicsConstants.acceleration(180d);
+	private static final double tankDrag = PhysicsConstants.integral(2d);
+	private static final double tankSteeringAccel = PhysicsConstants.angularAcceleration(8d);
+	private static final double tankSteeringDrag = PhysicsConstants.integral(6d);
+	private static final double bulletMaxAge = PhysicsConstants.time(2.333d);
 	protected long deltaTimeAlive, deltaTimeDead;
 	
 	@Override
@@ -793,12 +793,12 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	
 	private void drawPhysicsObject(Graphics g, PhysicsObject obj, long extrapolateTime, boolean wrap) {
 		
-		Vector2DLong drawPosition = PhysicsConstants.distanceToPixels(
+		Vector2DLong drawPositionPx = PhysicsConstants.distanceToPixels(
 				IPolygon.extrapolatePosition(obj, extrapolateTime));
 		
-		int radius = Math.max(1, (int)obj.getRadius());
-		int xDraw = (int)drawPosition.x - radius;
-		int yDraw = (int)drawPosition.y - radius;
+		int radius = Math.max(1, PhysicsConstants.distanceToPixels(obj.getRadius()));
+		int xDraw = (int)drawPositionPx.x - radius;
+		int yDraw = (int)drawPositionPx.y - radius;
 		int diameter = 2 * radius;
 		
 		g.fillOval(xDraw, yDraw, diameter, diameter);
@@ -811,16 +811,16 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		int xOffset = 0, yOffset = 0;
 		
 		// Draw wrapped copies of the object
-		boolean nearLeft = drawPosition.x < obj.getRadius(),
-				nearRight = drawPosition.x > getGameWidthPixels() - obj.getRadius();
+		boolean nearLeft = drawPositionPx.x < radius,
+				nearRight = drawPositionPx.x > getGameWidthPixels() - radius;
 		if (nearLeft) {
 			xOffset = getGameWidthPixels();
 		} else if (nearRight) {
 			xOffset = -getGameWidthPixels();
 		}
 		
-		boolean nearTop = drawPosition.y < obj.getRadius(),
-				nearBottom = drawPosition.y > getGameHeightPixels() - obj.getRadius();
+		boolean nearTop = drawPositionPx.y < radius,
+				nearBottom = drawPositionPx.y > getGameHeightPixels() - radius;
 		if (nearTop) {
 			yOffset = getGameHeightPixels();
 		} else if (nearBottom) {

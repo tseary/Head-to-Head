@@ -21,7 +21,7 @@ public class Tank extends RotatableRectanglePhysicsObject implements IOwnable, I
 	
 	private Player owner;
 	
-	static final double bulletSpeed = 150d;
+	static final double bulletSpeed = PhysicsConstants.velocity(150d);
 	
 	private static final int fullHealth = 3;
 	private int health = fullHealth;
@@ -30,8 +30,8 @@ public class Tank extends RotatableRectanglePhysicsObject implements IOwnable, I
 	private int ammo = fullAmmo;
 	
 	// Aestetic dimensions
-	private static final double barrelWidth = 2d,
-			barrelLength = 10d;
+	private static final double barrelWidth = PhysicsConstants.distance(2),
+			barrelLength = PhysicsConstants.distance(10);
 	
 	/**
 	 * 
@@ -64,7 +64,7 @@ public class Tank extends RotatableRectanglePhysicsObject implements IOwnable, I
 		// TODO Fix starting position to be just under the tip of the barrel
 		Bullet bullet = new Bullet(owner);
 		bullet.position = this.position
-				.sum(new Vector2D(getRadius() * 1.3d, angle, true));
+				.sum(new Vector2DLong(getRadius() * 1.3d, angle, true));
 		bullet.velocity = this.velocity
 				.sum(new Vector2D(bulletSpeed, angle, true));
 		return bullet;
