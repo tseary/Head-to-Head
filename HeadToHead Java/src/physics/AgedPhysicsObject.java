@@ -13,4 +13,8 @@ public abstract class AgedPhysicsObject extends PhysicsObject {
 	public long getAge() {
 		return age;
 	}
+	
+	public void addAge(long deltaTime) {
+		age += deltaTime;
+	}
 }

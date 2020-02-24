@@ -12,11 +12,11 @@ public class Wall extends RotatableRectanglePhysicsObject {
 		this(PhysicsConstants.distance(100));
 	}
 	
-	public Wall(double length) {
+	public Wall(long length) {
 		this(length, PhysicsConstants.distance(10));
 	}
 	
-	public Wall(double length, double width) {
+	public Wall(long length, long width) {
 		super(length, width);
 	}
 	

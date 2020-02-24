@@ -166,7 +166,6 @@ public class RotatableRectanglePhysicsObject extends RotatablePhysicsObject impl
 				surfaceNormal.vector = new Vector2D(1d, angle - 0.5d * Math.PI, true);
 			} else {
 				// Inside rectangle
-				// TODO
 				boolean rightCenter = pointRel.x >= 0d,
 						aboveCenter = pointRel.y >= 0d;
 				

@@ -174,7 +174,7 @@ public class Tank extends RotatableRectanglePhysicsObject implements IOwnable, I
 		Collection<Fragment> fragments = new ArrayList<Fragment>(shipOutline.length + 1);
 		
 		// The proportional speed at which fragments move away from the tank center
-		final double fragmentSplitSpeedMax = PhysicsConstants.integral(10d);
+		final double fragmentSplitSpeedMax = PhysicsConstants.integral(5d);
 		final double fragmentRotationSpeedMax = PhysicsConstants.angularVelocity(10d);
 		
 		Random random = new Random();

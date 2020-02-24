@@ -21,6 +21,7 @@ import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.util.Random;
 
 import javax.swing.Timer;
 
@@ -28,7 +29,9 @@ import button.ArcadeButton;
 import button.IButton;
 import button.InputSource;
 import button.VirtualButton;
+import geometry.Vector2DLong;
 import physics.PhysicsConstants;
+import physics.PhysicsObject;
 import sound.SoundPlayer;
 
 public abstract class HeadToHeadGameCanvas extends Canvas
@@ -171,6 +174,44 @@ public abstract class HeadToHeadGameCanvas extends Canvas
 		
 		players[0] = new Player(player0InputSource, new Color(0xff1220)); // Red
 		players[1] = new Player(player1InputSource, new Color(0xf7e700)); // Yellow
+	}
+	
+	/**
+	 * Helper to get a random position that is not too close to any physics objects.
+	 * @param random
+	 * @param clearance
+	 * @param objects
+	 * @return
+	 */
+	protected Vector2DLong randomPositionNotNearObjects(Random random, long clearance,
+			PhysicsObject[] objects) {
+		Vector2DLong position;
+		long clearanceSqr = clearance * clearance;
+		boolean validPosition;
+		do {
+			// Choose a random wall position
+			position = randomPosition(random);
+			
+			// Reroll if the position is too close to any tanks
+			validPosition = true;
+			for (PhysicsObject object : objects) {
+				double distanceSqr = object.position.difference(position).lengthSquared();
+				if (distanceSqr >= clearanceSqr) continue;
+				validPosition = false;
+				break;
+			}
+		} while (!validPosition);
+		return position;
+	}
+	
+	/**
+	 * Helper to get a random position, uniformly distributed throughout the world.
+	 * @param random
+	 * @return
+	 */
+	protected Vector2DLong randomPosition(Random random) {
+		return new Vector2DLong(random.nextInt((int)getGameWidthPhysics()),
+				random.nextInt((int)getGameHeightPhysics()));
 	}
 	
 	/**

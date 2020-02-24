@@ -93,6 +93,28 @@ public abstract class PhysicsObject {
 		}
 	}
 	
+	public void wrapPositionX(long width) {
+		position.x %= width;
+		if (position.x < 0) {
+			position.x += width;
+		}
+	}
+	
+	public void wrapPositionY(long height) {
+		position.y %= height;
+		if (position.y < 0) {
+			position.y += height;
+		}
+	}
+	
+	public void clampPositionX(long width) {
+		position.x = Math.min(Math.max(0, position.x), width - 1);
+	}
+	
+	public void clampPositionY(long height) {
+		position.y = Math.min(Math.max(0, position.y), height - 1);
+	}
+	
 	public boolean isTouching(PhysicsObject obj) {
 		// Do AABB collision first
 		if (!isTouchingAABB(obj)) return false;

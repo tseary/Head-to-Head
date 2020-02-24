@@ -16,7 +16,6 @@ import button.IButton;
 import geometry.SpaceVector2DLong;
 import geometry.Vector2D;
 import geometry.Vector2DLong;
-import headtohead.DebugMode;
 import headtohead.HeadToHeadGameCanvas;
 import headtohead.IOwnable;
 import headtohead.IScorable;
@@ -25,8 +24,6 @@ import physics.IPolygon;
 import physics.PhysicsConstants;
 import physics.PhysicsObject;
 import sound.SoundName;
-
-// TODO Add trees as visual cover and walls (buildings) as physical cover
 
 public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 	private static final long serialVersionUID = 1L;
@@ -83,7 +80,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		bullets = new ArrayList<Bullet>();
 		fragments = new ArrayList<Fragment>();
 		
-		Bullet.setRadius(2d);
+		Bullet.setRadius(PhysicsConstants.distance(2d));
 		
 		lastShotCounters = new int[players.length];
 		shootWasPressed = new boolean[players.length];
@@ -188,14 +185,15 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		Random random = new Random();
 		
 		final int MINIMUM_WALLS = 15;
-		final double wallLength = 100d,
-				wallWidth = 10d,
-				wallSpacing = (wallLength - wallWidth) / 2d;
+		final long wallLength = PhysicsConstants.distance(100),
+				wallWidth = PhysicsConstants.distance(10),
+				wallSpacing = (wallLength - wallWidth) / 2;
+		final long clearance = PhysicsConstants.distance(100);
 		
 		do {
 			// Create building
 			// Choose a random position, not too close to any tanks
-			Vector2D buildingCenter = randomPositionNotNearTank(random, 100d);
+			Vector2DLong buildingCenter = randomPositionNotNearObjects(random, clearance, tanks);
 			
 			// Rotate the building randomly
 			int angleIndex = random.nextInt(6);
@@ -203,7 +201,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 			
 			// Create walls
 			for (int i = 0; i < 3; i++) {
-				Wall wall = new Wall(random.nextDouble() < 0.30d ? wallLength / 2d : wallLength, wallWidth);
+				Wall wall = new Wall(random.nextDouble() < 0.30d ? wallLength / 2 : wallLength, wallWidth);
 				double angle = buildingAngle + i * Math.PI / 2d;
 				wall.position = buildingCenter.sum(
 						new Vector2D(wallSpacing, angle, true));
@@ -212,25 +210,6 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 			}
 			
 		} while (walls.size() < MINIMUM_WALLS);
-	}
-	
-	private Vector2D randomPositionNotNearTank(Random random, double clearance) {
-		Vector2D position;
-		double minDistanceSqrToTank,
-				clearanceSqr = clearance * clearance;
-		do {
-			// Choose a random wall position
-			position = new Vector2D(random.nextDouble() * getGameWidth(),
-					random.nextDouble() * getGameHeight());
-			
-			// Calculate the distance to the closest tank
-			minDistanceSqrToTank = Double.MAX_VALUE;
-			for (Tank tank : tanks) {
-				double distanceSqr = tank.position.difference(position).lengthSquared();
-				minDistanceSqrToTank = Math.min(minDistanceSqrToTank, distanceSqr);
-			}
-		} while (minDistanceSqrToTank < clearanceSqr);
-		return position;
 	}
 	
 	/**
@@ -485,7 +464,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 				}
 				
 				// Tank is touching wall - push off in the normal direction
-				SpaceVector2D surfaceNormal = wall.getSurfaceNormal(tank.position);
+				SpaceVector2DLong surfaceNormal = wall.getSurfaceNormal(tank.position);
 				tank.position.add(surfaceNormal.vector);
 				
 				// Stop tank
@@ -543,6 +522,12 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 					// Put the bullet on the surface of the wall
 					bullet.position = surfaceNormal.position.sum(
 							surfaceNormal.vector.scalarProduct(bullet.getRadius()));
+					
+					// Reduce the life of the bullet
+					bullet.addAge(PhysicsConstants.time(0.1d));
+					
+					// Only collide with one wall to prevent hugging
+					break;
 				}
 			}
 		}
@@ -676,7 +661,7 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 				continue;
 			}
 			g.setColor(getOwnerColor(tank));
-			drawPolygon(g, tank, extrapolateTime);
+			drawPhysicsObject(g, tank, extrapolateTime, true);
 		}
 		
 		// DEBUG
@@ -810,13 +795,25 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		Vector2DLong drawPositionPx = PhysicsConstants.distanceToPixels(
 				IPolygon.extrapolatePosition(obj, extrapolateTime));
 		
+		// Get the shape of the object
+		Polygon polygon = null;
 		int radius = Math.max(1, PhysicsConstants.distanceToPixels(obj.getRadius()));
-		int xDraw = (int)drawPositionPx.x - radius;
-		int yDraw = (int)drawPositionPx.y - radius;
-		int diameter = 2 * radius;
+		int xDraw = (int)drawPositionPx.x;
+		int yDraw = (int)drawPositionPx.y;
+		int diameter = 0;
+		if (obj instanceof IPolygon) {
+			polygon = ((IPolygon)obj).getOutline(extrapolateTime);
+		} else {
+			xDraw -= radius;
+			yDraw -= radius;
+			diameter = 2 * radius;
+		}
 		
-		g.fillOval(xDraw, yDraw, diameter, diameter);
-		g.drawOval(xDraw, yDraw, diameter, diameter);
+		if (polygon != null) {
+			renderPolygon(g, polygon);
+		} else {
+			renderCircle(g, xDraw, yDraw, diameter);
+		}
 		
 		if (!wrap) {
 			return;
@@ -843,20 +840,33 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		
 		// Draw x wrapped
 		if (xOffset != 0) {
-			g.fillOval(xDraw + xOffset, yDraw, diameter, diameter);
-			g.drawOval(xDraw + xOffset, yDraw, diameter, diameter);
+			if (polygon != null) {
+				Polygon xShifted = new Polygon(polygon.xpoints, polygon.ypoints, polygon.npoints);
+				xShifted.translate(xOffset, 0);
+				renderPolygon(g, xShifted);
+			} else {
+				renderCircle(g, xDraw + xOffset, yDraw, diameter);
+			}
 		}
 		
 		// Draw y wrapped
 		if (yOffset != 0) {
-			g.fillOval(xDraw, yDraw + yOffset, diameter, diameter);
-			g.drawOval(xDraw, yDraw + yOffset, diameter, diameter);
+			if (polygon != null) {
+				polygon.translate(0, yOffset);
+				renderPolygon(g, polygon);
+			} else {
+				renderCircle(g, xDraw, yDraw + yOffset, diameter);
+			}
 		}
 		
 		// Draw x and y wrapped
 		if (xOffset != 0 && yOffset != 0) {
-			g.fillOval(xDraw + xOffset, yDraw + yOffset, diameter, diameter);
-			g.drawOval(xDraw + xOffset, yDraw + yOffset, diameter, diameter);
+			if (polygon != null) {
+				polygon.translate(xOffset, 0);
+				renderPolygon(g, polygon);
+			} else {
+				renderCircle(g, xDraw + xOffset, yDraw + yOffset, diameter);
+			}
 		}
 	}
 	
@@ -865,6 +875,16 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		Polygon polygon = polygonObj.getOutline(extrapolateTime);
 		
 		// Fill and draw outline
+		g.fillPolygon(polygon);
+		g.drawPolygon(polygon);
+	}
+	
+	private static void renderCircle(Graphics g, int x, int y, int d) {
+		g.fillOval(x, y, d, d);
+		g.drawOval(x, y, d, d);
+	}
+	
+	private static void renderPolygon(Graphics g, Polygon polygon) {
 		g.fillPolygon(polygon);
 		g.drawPolygon(polygon);
 	}
