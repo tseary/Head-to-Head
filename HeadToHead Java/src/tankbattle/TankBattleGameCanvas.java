@@ -19,6 +19,7 @@ import geometry.Vector2DLong;
 import headtohead.HeadToHeadGameCanvas;
 import headtohead.IOwnable;
 import headtohead.IScorable;
+import headtohead.Performance;
 import headtohead.Player;
 import physics.IPolygon;
 import physics.PhysicsConstants;
@@ -256,11 +257,13 @@ public class TankBattleGameCanvas extends HeadToHeadGameCanvas {
 		moveEverything(deltaTimeAlive);
 		ageScoreMarkers(deltaTimeAlive);
 		shootBullets();
+		Performance.measure("phys stuff");
 		
 		collideTankToWall();
 		collideTankToTank();
 		collideBulletToWall();
 		collideBulletToTank();
+		Performance.measure("collisions");
 	}
 	
 	/**
